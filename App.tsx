@@ -50,13 +50,23 @@ const App: React.FC = () => {
     foodType: 'random'
   });
 
-  // Persistent currency & upgrades
+  // Persistent currency, upgrades & custom skins
   const [wallet, setWallet] = useState<PlayerWallet>(loadWallet);
   const [upgradeLevels, setUpgradeLevels] = useState<UpgradeLevels>(loadUpgrades);
+  const [customSkins, setCustomSkins] = useState<Skin[]>(() => {
+    try {
+      const saved = localStorage.getItem('neonworms_custom_skins');
+      if (saved) return JSON.parse(saved);
+    } catch { }
+    return [];
+  });
 
   // Persist on change
   useEffect(() => { saveWallet(wallet); }, [wallet]);
   useEffect(() => { saveUpgrades(upgradeLevels); }, [upgradeLevels]);
+  useEffect(() => {
+    localStorage.setItem('neonworms_custom_skins', JSON.stringify(customSkins));
+  }, [customSkins]);
 
   const gameRef = useRef<GameCanvasHandle>(null);
 
@@ -100,6 +110,19 @@ const App: React.FC = () => {
     setWallet(newWallet);
   };
 
+  const handleAddCustomSkin = (skin: Skin, cost: { type: 'coins' | 'diamonds', amount: number }) => {
+    if (cost.type === 'coins' && wallet.coins < cost.amount) return;
+    if (cost.type === 'diamonds' && wallet.diamonds < cost.amount) return;
+
+    // Deduct cost
+    const newWallet = { ...wallet };
+    if (cost.type === 'coins') newWallet.coins -= cost.amount;
+    else newWallet.diamonds -= cost.amount;
+
+    setWallet(newWallet);
+    setCustomSkins(prev => [...prev, skin]);
+  };
+
   const handleUpgrade = (type: PowerUpType, currency: 'coins' | 'diamonds') => {
     const level = upgradeLevels[type];
     if (level >= MAX_UPGRADE_LEVEL) return;
@@ -129,6 +152,8 @@ const App: React.FC = () => {
           currentSettings={gameSettings}
           onOpenUpgrades={() => setIsUpgradesOpen(true)}
           wallet={wallet}
+          customSkins={customSkins}
+          onAddCustomSkin={handleAddCustomSkin}
         />
       )}
 

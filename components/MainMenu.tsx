@@ -10,9 +10,19 @@ interface MainMenuProps {
   onUpdateSettings: (s: GameSettings) => void;
   onOpenUpgrades?: () => void;
   wallet?: PlayerWallet;
+  customSkins?: Skin[];
+  onAddCustomSkin?: (skin: Skin, cost: { type: 'coins' | 'diamonds', amount: number }) => void;
 }
 
-const MainMenu: React.FC<MainMenuProps> = ({ onStart, currentSettings, onUpdateSettings, onOpenUpgrades, wallet }) => {
+const MainMenu: React.FC<MainMenuProps> = ({
+  onStart,
+  currentSettings,
+  onUpdateSettings,
+  onOpenUpgrades,
+  wallet,
+  customSkins = [],
+  onAddCustomSkin
+}) => {
   const [name, setName] = useState('');
   const [selectedSkin, setSelectedSkin] = useState<Skin>(() => {
     const saved = localStorage.getItem('neon-worms-skin');
@@ -695,6 +705,9 @@ const MainMenu: React.FC<MainMenuProps> = ({ onStart, currentSettings, onUpdateS
           setSelectedSkin(skin);
           localStorage.setItem('neon-worms-skin', JSON.stringify(skin));
         }}
+        wallet={wallet}
+        customSkins={customSkins}
+        onAddCustomSkin={onAddCustomSkin}
       />
 
       {/* Settings Modal Overlay */}
