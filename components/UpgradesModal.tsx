@@ -20,7 +20,7 @@ const UpgradesModal: React.FC<UpgradesModalProps> = ({ isOpen, onClose, wallet, 
         switch (type) {
             case 'magnet':
                 return (
-                    <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 md:w-10 md:h-10 text-blue-400 drop-shadow-[0_0_12px_rgba(96,165,250,0.8)]" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 md:w-10 md:h-10 text-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,0.8)]" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M6 15v-4a6 6 0 1 1 12 0v4" />
                         <path d="M6 19a2 2 0 0 1 2 2h0a2 2 0 0 1-2-2v-4h4v4a2 2 0 0 1-2 2h0a2 2 0 0 1-2-2Z" fill="currentColor" fillOpacity="0.2" />
                         <path d="M14 19a2 2 0 0 1 2 2h0a2 2 0 0 1-2-2v-4h4v4a2 2 0 0 1-2 2h0a2 2 0 0 1-2-2Z" fill="currentColor" fillOpacity="0.2" />
