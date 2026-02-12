@@ -312,7 +312,7 @@ export const POWER_UP_CONFIG = {
 
 export const POWER_UP_SPAWN_INTERVAL = 4; // Seconds between spawns (faster!)
 export const MAX_POWER_UPS = isMobile ? 6 : 10; // More power-ups on map
-export const POWER_UP_RADIUS = 30; // Slightly larger for visibility
+export const POWER_UP_RADIUS = 45; // Significantly larger for visibility (was 30)
 export const INITIAL_POWER_UPS = 5; // Start with more power-ups
 
 // Upgrade System Configuration
@@ -328,7 +328,7 @@ export const UPGRADE_DURATION_MULTIPLIER = (level: number) => 1 + level * 0.25;
 // Collectible (Coin / Diamond) Configuration
 export const COIN_CONFIG = {
   maxOnMap: 10,
-  spawnInterval: 5, // seconds between coin spawns
+  spawnInterval: 9, // Reduced rate (was 5s), now approx 40% slower
   radius: 18,
   sprite: '/assets/ui/coin.svg'
 };

@@ -126,8 +126,8 @@ export const createFood = (mapSize: number, type: Food['type'] = 'regular', pos?
   let config = FOOD_CONFIG[categoryKey];
   let item = config.items[Math.floor(Math.random() * config.items.length)];
 
-  // Calculate size based on type
-  let radius = 16 + (item.value * 0.4);
+  // Calculate size based on type - Increased base size
+  let radius = 24 + (item.value * 0.5); // was 16 + value*0.4
   if (type === 'remains') radius *= 1.8; // Remains are much bigger
 
   // Standard values: regular food = 10, remains = 20
@@ -277,11 +277,20 @@ export const updateBotAI = (bot: Worm, food: Food[], otherWorms: Worm[], mapSize
   const head = bot.body[0];
 
   // 1. Avoid Walls
-  const wallMargin = 200;
-  if (head.x < wallMargin) bot.targetAngle = 0;
-  else if (head.x > mapSize - wallMargin) bot.targetAngle = Math.PI;
-  else if (head.y < wallMargin) bot.targetAngle = Math.PI / 2;
-  else if (head.y > mapSize - wallMargin) bot.targetAngle = -Math.PI / 2;
+  // 1. Avoid Walls (Circular Map)
+  const mapRadius = mapSize / 2;
+  const centerX = mapSize / 2;
+  const centerY = mapSize / 2;
+  const distFromCenter = Math.sqrt((head.x - centerX) ** 2 + (head.y - centerY) ** 2);
+  const wallMargin = 300;
+
+  if (distFromCenter > mapRadius - wallMargin) {
+    // Steer towards center
+    const angleToCenter = Math.atan2(centerY - head.y, centerX - head.x);
+    // Smoothly blend current direction with center direction
+    // For now, just hard target the center to ensure they turn
+    bot.targetAngle = angleToCenter;
+  }
 
   // 2. Avoid Other Worms
   let avoidanceForce = { x: 0, y: 0 };

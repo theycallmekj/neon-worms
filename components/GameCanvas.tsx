@@ -174,11 +174,18 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       if (!state || !state.player.isDead) return;
 
       // Reset player state
+      // Persist existing power-ups (if any time left)
+      const oldPowerUps = { ...state.player.powerUps };
+      // Ensure we explicitly keep them, or if 0, they stay 0.
+      state.player.powerUps = oldPowerUps;
+      // Add a shield for spawn protection (don't overwrite if they had a longer one)
+      state.player.powerUps.shield = Math.max(state.player.powerUps.shield, 3);
+
       state.player.isDead = false;
       state.player.isInvincible = true;
-      state.player.invincibilityTimer = 5; // 5 seconds of safety
+      state.player.invincibilityTimer = 3; // 3 seconds of safety
       state.player.isFrozen = false;
-      state.player.powerUps = { magnet: 0, speed: 0, freeze: 0, shield: 3 }; // Give a shield on revive
+      // state.player.powerUps is already set above
       state.isGameOver = false;
 
       // Find a safe spot or just reset to center
@@ -1189,6 +1196,33 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           }
         });
 
+        // Bot Power-Up Collection (Added Feature)
+        // Bots can take all power-ups EXCEPT Freeze
+        if (frameCountRef.current % 3 === 0) { // Check every few frames
+          state.bots.forEach(bot => {
+            for (let i = state.powerUps.length - 1; i >= 0; i--) {
+              const pu = state.powerUps[i];
+              // Bots can't pick up Freeze
+              if (pu.type === 'freeze') continue;
+
+              if (Vec2.dist(bot.body[0], pu.position) < bot.radius + pu.radius) {
+                // Bot collects power-up!
+                state.powerUps.splice(i, 1);
+
+                // Apply effect
+                bot.powerUps[pu.type] = pu.duration;
+                if (pu.type === 'shield') bot.isInvincible = true;
+
+                // Bot happiness
+                bot.expression = 'eating';
+                bot.expressionTimer = 1.0;
+                bot.expressionIntensity = 1.0;
+                break; // One per frame
+              }
+            }
+          });
+        }
+
         // ============ POWER-UP SYSTEM ============
 
         // Spawn new power-ups periodically
@@ -1306,6 +1340,11 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             }
             onWalletChange(newWallet);
             state.collectibles.splice(i, 1);
+          } else if (c.type === 'coin' && Date.now() - c.spawnTime > 15000) {
+            // Expire Coin after 15s and Respawn Elsewhere
+            state.collectibles.splice(i, 1);
+            // Push new one immediately to maintain count, at random pos
+            state.collectibles.push(createCollectible(MAP_SIZE, 'coin'));
           }
         }
 
