@@ -75,23 +75,53 @@ const App: React.FC = () => {
     localStorage.setItem('neonworms_custom_skins', JSON.stringify(customSkins));
   }, [customSkins]);
 
-  // key: Global Ad & Audio Init
-  useEffect(() => {
-    // AdMob Init
-    adManager.initialize();
+  // Splash screen helpers
+  const updateSplash = (pct: number, text?: string) => {
+    const bar = document.getElementById('splash-progress');
+    const label = document.getElementById('splash-text');
+    if (bar) bar.style.width = pct + '%';
+    if (label && text) label.textContent = text;
+  };
 
-    // Preload immediately
-    audioController.preload();
+  const dismissSplash = () => {
+    const el = document.getElementById('splash-screen');
+    if (el) {
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 500);
+    }
+  };
+
+  // key: Global Ad & Audio Init — DEFERRED after splash
+  useEffect(() => {
+    updateSplash(30, 'LOADING ASSETS...');
+
+    // Let the first React render paint, THEN init heavy stuff
+    const timer = setTimeout(() => {
+      updateSplash(70, 'INITIALIZING...');
+
+      // Defer ad + audio to idle time
+      const deferInit = () => {
+        adManager.initialize();
+        audioController.preload();
+        updateSplash(100, 'READY');
+
+        // Dismiss splash after a brief moment
+        setTimeout(dismissSplash, 400);
+      };
+
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(deferInit, { timeout: 1000 });
+      } else {
+        setTimeout(deferInit, 200);
+      }
+    }, 100); // Small delay to let first frame paint
 
     // Try to start music on any interaction (Capture phase to catch everything)
     const startMusic = () => {
       audioController.requestMusicStart();
-      // We keep listening until it succeeds (handled inside controller)
     };
 
-    // Attempt immediately (Best effort - works if domain already has interaction/allowance)
     startMusic();
-
     window.addEventListener('click', startMusic, true);
     window.addEventListener('touchstart', startMusic, true);
     window.addEventListener('keydown', startMusic, true);
@@ -101,14 +131,13 @@ const App: React.FC = () => {
       if (document.hidden) {
         audioController.stop('game');
       } else {
-        // Only resume if we are in a state where music SHOULD play
-        // We can just request start, controller handles state
         audioController.requestMusicStart();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('click', startMusic, true);
       window.removeEventListener('touchstart', startMusic, true);
       window.removeEventListener('keydown', startMusic, true);

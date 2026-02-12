@@ -26,16 +26,24 @@ export interface GameCanvasHandle {
   revive: () => void;
 }
 
-// Virtual Joystick Configuration
-const JOYSTICK_SIZE = 120;
-const JOYSTICK_KNOB_SIZE = 50;
-const JOYSTICK_MARGIN = 30;
+// ---- Responsive UI Scale ----
+// Derive a continuous scale factor from viewport short edge.
+// Reference: 375 CSS-px (iPhone SE) = 1.0
+const getUIScale = () => {
+  const shortEdge = Math.min(window.innerWidth, window.innerHeight);
+  return Math.max(0.6, Math.min(2.0, shortEdge / 375));
+};
+
+// Virtual Joystick (responsive)
+const getJoystickSize = () => { const s = getUIScale(); return Math.round(100 * s); };
+const getJoystickKnob = () => { const s = getUIScale(); return Math.round(42 * s); };
+const getJoystickMargin = () => { const s = getUIScale(); return Math.round(24 * s); };
 
 // Performance constants
-const MAX_VISIBLE_SEGMENTS = 80; // Maximum segments to render per worm
-const SEGMENT_RENDER_SKIP = 2; // Skip every N segments when rendering (draw circles further apart)
-const COLLISION_CHECK_SKIP = 3; // Skip segments in collision detection
-const FOOD_BATCH_SIZE = 100; // Process food in batches
+const MAX_VISIBLE_SEGMENTS = 96;
+const SEGMENT_RENDER_SKIP = 2;
+const COLLISION_CHECK_SKIP = 3;
+const FOOD_BATCH_SIZE = 100;
 
 const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, playerSkin, botNameList, onGameOver, isPaused, pitCount = DEFAULT_PIT_COUNT, arenaId = 'dark', enabledPitTypes = [], foodType = 'random', wallet, onWalletChange, upgradeLevels }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -384,7 +392,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           const dx = touchX - joystickOriginRef.current.x;
           const dy = touchY - joystickOriginRef.current.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const maxDist = JOYSTICK_SIZE / 2;
+          const maxDist = getJoystickSize() / 2;
 
           if (dist > maxDist) {
             joystickPosRef.current = {
@@ -473,7 +481,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
     // Determine overlapping factor for body segments
     const totalSegments = w.body.length;
     // Optimize: Draw fewer segments for image/composite skins OR mobile
-    const baseSkip = (isImageSkin || isCompositeSkin || isMobileRef.current) ? 3 : 1;
+    const baseSkip = (isImageSkin || isCompositeSkin) ? 3 : (isMobileRef.current ? 2 : 1);
     const skipFactor = Math.max(baseSkip, Math.ceil(totalSegments / MAX_VISIBLE_SEGMENTS));
 
     // Draw body segments (from tail to head)
@@ -484,7 +492,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         pos.x < camera.x - 200 || pos.x > camera.x + worldWidth + 200 ||
         pos.y < camera.y - 200 || pos.y > camera.y + worldHeight + 200) continue;
 
-      const adjustedRadius = w.radius * (skipFactor > 1 ? 1.2 : 1);
+      const adjustedRadius = w.radius * (skipFactor > 1 ? 1.14 : 1);
 
       if (isImageSkin && w.skin.images?.body) {
         const bodyImg = getSkinImage(w.skin.images.body);
@@ -520,13 +528,14 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       } else {
         const colorIdx = Math.floor(i / 2) % w.skin.colors.length;
         const color = w.skin.colors[colorIdx];
+        const isElectric = w.skin.pattern === 'electric';
+        const shouldGlow = !isMobileRef.current && (isElectric || i % (skipFactor * 3) === 0);
 
         ctx.fillStyle = color;
 
-        // Pattern: Electric/Neon Glow
-        const isElectric = w.skin.pattern === 'electric';
-        if (isElectric && !isMobileRef.current) {
-          ctx.shadowBlur = 8;
+        // Lightweight glow to keep neon feel without heavy GPU cost.
+        if (shouldGlow) {
+          ctx.shadowBlur = isElectric ? 9 : 5;
           ctx.shadowColor = color;
         }
 
@@ -534,7 +543,32 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.arc(pos.x, pos.y, adjustedRadius, 0, Math.PI * 2);
         ctx.fill();
 
-        if (isElectric) ctx.shadowBlur = 0;
+        ctx.shadowBlur = 0;
+
+        // Clean, lightweight 3D cue.
+        if (!isMobileRef.current) {
+          ctx.fillStyle = 'rgba(255,255,255,0.14)';
+          ctx.beginPath();
+          ctx.ellipse(
+            pos.x - adjustedRadius * 0.22,
+            pos.y - adjustedRadius * 0.22,
+            adjustedRadius * 0.28,
+            adjustedRadius * 0.14,
+            Math.PI / 4,
+            0,
+            Math.PI * 2
+          );
+          ctx.fill();
+        }
+
+        if (!isElectric && !isMobileRef.current) {
+          ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, adjustedRadius * 0.95, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
 
         // Pattern: Spots
         if (w.skin.pattern === 'spots' && i % 4 === 0) {
@@ -554,13 +588,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           ctx.stroke();
         }
 
-        // 3D Shine (Glossy look)
-        if (!isElectric && !isMobileRef.current) {
-          ctx.fillStyle = 'rgba(255,255,255,0.15)';
-          ctx.beginPath();
-          ctx.ellipse(pos.x - adjustedRadius * 0.2, pos.y - adjustedRadius * 0.2, adjustedRadius * 0.3, adjustedRadius * 0.15, Math.PI / 4, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        // Intentionally no extra heavy sparkle pass here.
       }
     }
 
@@ -584,10 +612,31 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.fill();
       }
     } else {
+      const headRadius = w.radius * 1.1;
+      if (!isMobileRef.current) {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = w.skin.headColor;
+      }
       ctx.fillStyle = w.skin.headColor;
       ctx.beginPath();
-      ctx.arc(headPos.x, headPos.y, w.radius * 1.1, 0, Math.PI * 2);
+      ctx.arc(headPos.x, headPos.y, headRadius, 0, Math.PI * 2);
       ctx.fill();
+      ctx.shadowBlur = 0;
+
+      if (!isMobileRef.current) {
+        ctx.fillStyle = 'rgba(255,255,255,0.22)';
+        ctx.beginPath();
+        ctx.ellipse(
+          headPos.x - headRadius * 0.25,
+          headPos.y - headRadius * 0.25,
+          headRadius * 0.32,
+          headRadius * 0.16,
+          Math.PI / 4,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+      }
 
       // Draw animated expressive face (ONLY IF NOT IMAGE SKIN)
       ctx.save();
@@ -825,17 +874,21 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
     const cssWidth = window.innerWidth;
     const cssHeight = window.innerHeight;
 
+    const jSize = getJoystickSize();
+    const jKnob = getJoystickKnob();
+    const jMargin = getJoystickMargin();
+
     const baseX = joystickActiveRef.current
       ? joystickOriginRef.current.x
-      : JOYSTICK_MARGIN + JOYSTICK_SIZE / 2;
+      : jMargin + jSize / 2;
     const baseY = joystickActiveRef.current
       ? joystickOriginRef.current.y
-      : cssHeight - JOYSTICK_MARGIN - JOYSTICK_SIZE / 2;
+      : cssHeight - jMargin - jSize / 2;
 
     ctx.save();
     ctx.globalAlpha = 0.4;
     ctx.beginPath();
-    ctx.arc(baseX, baseY, JOYSTICK_SIZE / 2, 0, Math.PI * 2);
+    ctx.arc(baseX, baseY, jSize / 2, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(100, 116, 139, 0.5)';
     ctx.fill();
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
@@ -847,7 +900,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
     ctx.globalAlpha = 0.7;
     ctx.beginPath();
-    ctx.arc(knobX, knobY, JOYSTICK_KNOB_SIZE / 2, 0, Math.PI * 2);
+    ctx.arc(knobX, knobY, jKnob / 2, 0, Math.PI * 2);
     ctx.fillStyle = '#06b6d4';
     ctx.fill();
     ctx.strokeStyle = '#22d3ee';
@@ -857,9 +910,9 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
     ctx.restore();
 
     // Boost button — use CSS pixel dimensions
-    const boostX = cssWidth - JOYSTICK_MARGIN - JOYSTICK_SIZE / 2;
-    const boostY = cssHeight - JOYSTICK_MARGIN - JOYSTICK_SIZE / 2;
-    const boostRadius = JOYSTICK_SIZE / 2.5;
+    const boostX = cssWidth - jMargin - jSize / 2;
+    const boostY = cssHeight - jMargin - jSize / 2;
+    const boostRadius = jSize / 2.5;
 
     ctx.save();
     ctx.globalAlpha = isMouseDownRef.current ? 0.9 : 0.4;
@@ -880,7 +933,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
     } else {
       ctx.globalAlpha = isMouseDownRef.current ? 1 : 0.6;
       ctx.fillStyle = 'white';
-      ctx.font = 'bold 24px Orbitron';
+      ctx.font = `bold ${Math.round(20 * getUIScale())}px Orbitron`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('⚡', boostX, boostY);
@@ -955,6 +1008,9 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         // Update bots with distance-based optimization
         const playerHead = state.player.body[0];
         const botsToRemove: number[] = [];
+        const nearbyWorms: Worm[] = [];
+        const allWormsForAI = [state.player, ...state.bots];
+        const nearCollisionDistSq = 600 * 600;
 
         for (let i = 0; i < state.bots.length; i++) {
           const bot = state.bots[i];
@@ -981,18 +1037,20 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             }
           }
 
-          const distToPlayer = Vec2.dist(playerHead, bot.body[0]);
+          const dxToPlayer = playerHead.x - bot.body[0].x;
+          const dyToPlayer = playerHead.y - bot.body[0].y;
+          const distToPlayerSq = dxToPlayer * dxToPlayer + dyToPlayer * dyToPlayer;
           const mapRadius = MAP_SIZE / 2;
           const distFromCenter = Math.sqrt((bot.body[0].x - mapRadius) ** 2 + (bot.body[0].y - mapRadius) ** 2);
           const isNearBoundary = distFromCenter > mapRadius - 600; // Increased margin for AI activation
 
           // Always update AI if near boundary (FIX: prevents getting stuck)
           // otherwise use distance-based optimization
-          if (isNearBoundary || distToPlayer < 1200) {
-            updateBotAI(bot, state.food, [state.player, ...state.bots], MAP_SIZE);
-          } else if (distToPlayer < 2400 && frameCountRef.current % 3 === 0) {
+          if (isNearBoundary || distToPlayerSq < 1200 * 1200) {
+            updateBotAI(bot, state.food, allWormsForAI, MAP_SIZE);
+          } else if (distToPlayerSq < 2400 * 2400 && frameCountRef.current % 3 === 0) {
             // Update distant bots less frequently
-            updateBotAI(bot, state.food, [state.player, ...state.bots], MAP_SIZE);
+            updateBotAI(bot, state.food, allWormsForAI, MAP_SIZE);
           }
 
           const botHitWall = updateWormPosition(bot, MAP_SIZE, deltaTime);
@@ -1010,6 +1068,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
               }
             }
           }
+
+          if (distToPlayerSq < nearCollisionDistSq) {
+            nearbyWorms.push(bot);
+          }
         }
 
         // Remove bots that hit walls and respawn
@@ -1019,11 +1081,6 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           const skin = SKINS[Math.floor(Math.random() * SKINS.length)];
           state.bots.push(createWorm(`bot-${Date.now()}-${Math.random()}`, "Bot", randomPosition(MAP_SIZE), skin, true));
         }
-
-        // Optimized collision detection - only check nearby worms
-        const nearbyWorms = state.bots.filter(bot =>
-          Vec2.dist(playerHead, bot.body[0]) < 600
-        );
 
         const allWorms = [state.player, ...nearbyWorms];
         const { deadWormIds, killerIds } = checkCollisions(allWorms);
@@ -1047,7 +1104,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           if (botIndex !== -1) {
             const deadBot = state.bots[botIndex];
             // Drop fewer food items for performance (max 15 items)
-            const dropCount = Math.min(10, Math.floor(deadBot.body.length / 15)); // Reduced drop count
+            const dropCount = Math.min(7, Math.floor(deadBot.body.length / 18)); // Lower burst load during bot death
 
             // Remove old food if we are over the limit
             if (state.food.length + dropCount > MAX_TOTAL_FOOD) {
@@ -1063,8 +1120,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             // Check if player killed this bot → drop COINS!
             const deadIdx = deadWormIds.indexOf(id);
             if (deadIdx !== -1 && killerIds[deadIdx] === state.player.id) {
-              // Drop 3-5 coins scattered around the head
-              const coinCount = 3 + Math.floor(Math.random() * 3);
+              // Drop 2-4 coins scattered around the head
+              const coinCount = 2 + Math.floor(Math.random() * 3);
               for (let c = 0; c < coinCount; c++) {
                 const offset = {
                   x: (Math.random() - 0.5) * 60,
@@ -1083,13 +1140,17 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
         // Optimized food eating - only check nearby food
         const eatRadius = state.player.radius + 20;
+        const eatRadiusSq = eatRadius * eatRadius;
         const playerAteFood: number[] = [];
+        let playedFoodSfx = false;
 
         for (let i = state.food.length - 1; i >= 0; i--) {
           const f = state.food[i];
-          const distToPlayer = Vec2.dist(playerHead, f.position);
+          const fdx = playerHead.x - f.position.x;
+          const fdy = playerHead.y - f.position.y;
+          const distToPlayerSq = fdx * fdx + fdy * fdy;
 
-          if (distToPlayer < eatRadius) {
+          if (distToPlayerSq < eatRadiusSq) {
             state.player.score += f.value;
             state.player.radius = BASE_RADIUS + Math.sqrt(state.player.score) * 0.04;
             playerAteFood.push(i);
@@ -1103,8 +1164,11 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
             if (f.type !== 'remains') state.food.push(createFood(MAP_SIZE, 'regular', undefined, undefined, foodType));
 
-            // Audio: Play sound for every food item (allow overlap for satisfaction)
-            audioController.play('food', true);
+            // Audio: one food SFX per frame prevents audio burst-induced stutter.
+            if (!playedFoodSfx) {
+              audioController.play('food');
+              playedFoodSfx = true;
+            }
           }
         }
 
@@ -1115,9 +1179,14 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
         // Check if player should be FRUSTRATED (enemy snake very close)
         if (state.player.expression === 'neutral' || state.player.expressionTimer <= 0) {
-          const veryCloseThreats = nearbyWorms.filter(bot =>
-            Vec2.dist(playerHead, bot.body[0]) < 150
-          ).length;
+          let veryCloseThreats = 0;
+          const veryCloseSq = 150 * 150;
+          for (let i = 0; i < nearbyWorms.length; i++) {
+            const bot = nearbyWorms[i];
+            const dx = playerHead.x - bot.body[0].x;
+            const dy = playerHead.y - bot.body[0].y;
+            if (dx * dx + dy * dy < veryCloseSq) veryCloseThreats++;
+          }
 
           if (veryCloseThreats > 0) {
             // 😠 FRUSTRATED expression - when enemies are too close!
@@ -1132,9 +1201,14 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           state.bots.forEach(bot => {
             for (let i = state.food.length - 1; i >= 0; i--) {
               const f = state.food[i];
-              if (Vec2.dist(bot.body[0], f.position) < bot.radius + 15) {
+              const bdx = bot.body[0].x - f.position.x;
+              const bdy = bot.body[0].y - f.position.y;
+              const botEatRadius = bot.radius + 15;
+              if (bdx * bdx + bdy * bdy < botEatRadius * botEatRadius) {
                 // Check if player was close to this food (they'll be sad!)
-                const playerWasClose = Vec2.dist(playerHead, f.position) < 80;
+                const pdx = playerHead.x - f.position.x;
+                const pdy = playerHead.y - f.position.y;
+                const playerWasClose = (pdx * pdx + pdy * pdy) < 80 * 80;
 
                 bot.score += f.value;
                 bot.radius = BASE_RADIUS + Math.sqrt(bot.score) * 0.04;
@@ -1188,7 +1262,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
               // Bots can't pick up Freeze
               if (pu.type === 'freeze') continue;
 
-              if (Vec2.dist(bot.body[0], pu.position) < bot.radius + pu.radius) {
+              const bdx = bot.body[0].x - pu.position.x;
+              const bdy = bot.body[0].y - pu.position.y;
+              const botPuRadius = bot.radius + pu.radius;
+              if (bdx * bdx + bdy * bdy < botPuRadius * botPuRadius) {
                 // Bot collects power-up!
                 state.powerUps.splice(i, 1);
 
@@ -1218,9 +1295,11 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         // Player power-up collection
         for (let i = state.powerUps.length - 1; i >= 0; i--) {
           const pu = state.powerUps[i];
-          const distToPlayer = Vec2.dist(playerHead, pu.position);
+          const pdx = playerHead.x - pu.position.x;
+          const pdy = playerHead.y - pu.position.y;
+          const playerPuRadius = state.player.radius + pu.radius;
 
-          if (distToPlayer < state.player.radius + pu.radius) {
+          if (pdx * pdx + pdy * pdy < playerPuRadius * playerPuRadius) {
             // Collect power-up!
             const config = POWER_UP_CONFIG[pu.type];
             // Apply upgrade-level duration scaling
@@ -1277,13 +1356,15 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         // MAGNET effect - attract nearby food
         if (state.player.powerUps.magnet > 0) {
           const magnetRange = 200;
+          const magnetRangeSq = magnetRange * magnetRange;
           state.food.forEach(f => {
-            const dist = Vec2.dist(playerHead, f.position);
-            if (dist < magnetRange && dist > 10) {
+            const dx = playerHead.x - f.position.x;
+            const dy = playerHead.y - f.position.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < magnetRangeSq && distSq > 100) {
               // Pull food towards player
               const pullStrength = 8;
-              const dx = playerHead.x - f.position.x;
-              const dy = playerHead.y - f.position.y;
+              const dist = Math.sqrt(distSq);
               const pullFactor = pullStrength / dist;
               f.position.x += dx * pullFactor;
               f.position.y += dy * pullFactor;
@@ -1303,17 +1384,26 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
         // Spawn coins periodically (max on map)
         const timeSinceLastCoin = (Date.now() - lastCoinSpawnRef.current) / 1000;
-        const coinsOnMap = state.collectibles.filter(c => c.type === 'coin').length;
-        if (timeSinceLastCoin > COIN_CONFIG.spawnInterval && coinsOnMap < COIN_CONFIG.maxOnMap) {
-          state.collectibles.push(createCollectible(MAP_SIZE, 'coin'));
+        if (timeSinceLastCoin > COIN_CONFIG.spawnInterval) {
+          let coinsOnMap = 0;
+          for (let i = 0; i < state.collectibles.length; i++) {
+            if (state.collectibles[i].type === 'coin') coinsOnMap++;
+            if (coinsOnMap >= COIN_CONFIG.maxOnMap) break;
+          }
+          if (coinsOnMap < COIN_CONFIG.maxOnMap) {
+            state.collectibles.push(createCollectible(MAP_SIZE, 'coin'));
+          }
           lastCoinSpawnRef.current = Date.now();
         }
 
         // Player-only collectible pickup
+        let playedCoinSfx = false;
         for (let i = state.collectibles.length - 1; i >= 0; i--) {
           const c = state.collectibles[i];
-          const distToPlayer = Vec2.dist(playerHead, c.position);
-          if (distToPlayer < state.player.radius + c.radius) {
+          const cdx = playerHead.x - c.position.x;
+          const cdy = playerHead.y - c.position.y;
+          const pickupRadius = state.player.radius + c.radius;
+          if (cdx * cdx + cdy * cdy < pickupRadius * pickupRadius) {
             // Collect!
             const newWallet = { ...walletRef.current };
             if (c.type === 'coin') {
@@ -1325,7 +1415,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             }
             onWalletChange(newWallet);
             state.collectibles.splice(i, 1);
-            if (c.type === 'coin') audioController.play('coin', true);
+            if (c.type === 'coin' && !playedCoinSfx) {
+              audioController.play('coin');
+              playedCoinSfx = true;
+            }
             // Can add diamond sound later if needed
           } else if (c.type === 'coin' && Date.now() - c.spawnTime > 15000) {
             // Expire Coin after 15s and Respawn Elsewhere
@@ -1347,8 +1440,9 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       const canvasWidth = canvas.width / dpr;
       const canvasHeight = canvas.height / dpr;
 
-      // Define Zoom factor (More zoomed out on mobile for better visibility)
-      const zoom = isMobileRef.current ? 0.6 : 0.8;
+      // Viewport-adaptive zoom (scales continuously with screen size)
+      const shortEdge = Math.min(canvasWidth, canvasHeight);
+      const zoom = Math.max(0.45, Math.min(1.0, shortEdge / 600));
 
       // Calculate viewport dimensions in world-space
       const worldViewWidth = canvasWidth / zoom;
@@ -1413,10 +1507,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.fillStyle = innerGradient;
         ctx.fill();
 
-        // Type-specific effects
-        if (pit.type === 'lava') {
+        // Type-specific effects (desktop only for performance).
+        if (!isMobileRef.current && pit.type === 'lava') {
           // Lava bubbles
-          const bubbleCount = isMobileRef.current ? 3 : 6;
+          const bubbleCount = 6;
           for (let i = 0; i < bubbleCount; i++) {
             const angle = (animTime * 0.5 + i * Math.PI / 3) % (Math.PI * 2);
             const dist = pit.radius * 0.4 + Math.sin(animTime * 2 + i) * 20;
@@ -1428,7 +1522,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             ctx.fillStyle = '#ffff00';
             ctx.fill();
           }
-        } else if (pit.type === 'void') {
+        } else if (!isMobileRef.current && pit.type === 'void') {
           // Spiral effect
           ctx.save();
           ctx.rotate(animTime);
@@ -1440,9 +1534,9 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             ctx.stroke();
           }
           ctx.restore();
-        } else if (pit.type === 'acid') {
+        } else if (!isMobileRef.current && pit.type === 'acid') {
           // Bubbling effect
-          const bubbleCount = isMobileRef.current ? 4 : 8;
+          const bubbleCount = 8;
           for (let i = 0; i < bubbleCount; i++) {
             const bx = Math.sin(animTime * 2 + i * 1.2) * pit.radius * 0.5;
             const by = Math.cos(animTime * 1.5 + i * 0.8) * pit.radius * 0.5;
@@ -1452,7 +1546,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
             ctx.fill();
           }
-        } else if (pit.type === 'electric') {
+        } else if (!isMobileRef.current && pit.type === 'electric') {
           // Electric sparks
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 2;
@@ -1486,22 +1580,22 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       });
 
 
-      // Food (optimized with cached sprites and frustum culling)
-      const viewMargin = 400; // Increased margin to preventing popping
-      const visibleFood = state.food.filter(f =>
-        f.position.x >= state.camera.x - viewMargin &&
-        f.position.x <= state.camera.x + worldViewWidth + viewMargin &&
-        f.position.y >= state.camera.y - viewMargin &&
-        f.position.y <= state.camera.y + worldViewHeight + viewMargin
-      );
+      // Food rendering with frustum culling (no temporary arrays to reduce GC pressure).
+      const viewMargin = 400;
+      const minVX = state.camera.x - viewMargin;
+      const maxVX = state.camera.x + worldViewWidth + viewMargin;
+      const minVY = state.camera.y - viewMargin;
+      const maxVY = state.camera.y + worldViewHeight + viewMargin;
+      const mobileLite = isMobileRef.current;
 
-      // Super fast food rendering with visual improvements
-      for (const f of visibleFood) {
+      for (let fi = 0; fi < state.food.length; fi++) {
+        const f = state.food[fi];
+        if (f.position.x < minVX || f.position.x > maxVX || f.position.y < minVY || f.position.y > maxVY) continue;
         let renderRadius = f.radius;
         const isRemains = f.type === 'remains';
 
         // Floating bob animation for all food
-        const bobOffset = Math.sin(animTime * 2.5 + f.position.x * 0.05 + f.position.y * 0.03) * 3;
+        const bobOffset = mobileLite ? 0 : Math.sin(animTime * 2.5 + f.position.x * 0.05 + f.position.y * 0.03) * 3;
         const drawY = f.position.y + bobOffset;
 
         if (isRemains) {
@@ -1527,13 +1621,17 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
         if (spriteImg && spriteImg.complete && spriteImg.width > 0) {
           // Individual Sprite Drawing with gentle rotation
-          const drawSize = renderRadius * 3.5; // Increased from 2.8 for better visibility
-          const rot = Math.sin(animTime * 1.5 + f.position.x * 0.1) * 0.1; // gentle wobble
-          ctx.save();
-          ctx.translate(f.position.x, drawY);
-          ctx.rotate(rot);
-          ctx.drawImage(spriteImg, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
-          ctx.restore();
+          const drawSize = renderRadius * (mobileLite ? 3.1 : 3.5);
+          if (mobileLite) {
+            ctx.drawImage(spriteImg, f.position.x - drawSize / 2, drawY - drawSize / 2, drawSize, drawSize);
+          } else {
+            const rot = Math.sin(animTime * 1.5 + f.position.x * 0.1) * 0.1;
+            ctx.save();
+            ctx.translate(f.position.x, drawY);
+            ctx.rotate(rot);
+            ctx.drawImage(spriteImg, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+            ctx.restore();
+          }
         } else {
           // Fallback Logic (Emoji or Circle)
           if (f.emoji) {
@@ -1564,7 +1662,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         }
 
         // "2x" label for remains
-        if (isRemains) {
+        if (isRemains && !mobileLite) {
           ctx.font = 'bold 10px Orbitron';
           ctx.fillStyle = '#ffd700';
           ctx.textAlign = 'center';
@@ -1573,24 +1671,19 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       }
 
       // 3. Draw Collectibles (Coins & Diamonds) with animations
+      const collectibleMargin = 300;
       state.collectibles.forEach(c => {
-        // Zoom-Aware Frustum culling
-        // Calculate the actual visible world bounds
-        const worldViewWidth = canvasWidth / zoom;
-        const worldViewHeight = canvasHeight / zoom;
-        const margin = 300; // Extra margin for animations/bounce
-
-        if (c.position.x < state.camera.x - margin ||
-          c.position.x > state.camera.x + worldViewWidth + margin ||
-          c.position.y < state.camera.y - margin ||
-          c.position.y > state.camera.y + worldViewHeight + margin) {
+        if (c.position.x < state.camera.x - collectibleMargin ||
+          c.position.x > state.camera.x + worldViewWidth + collectibleMargin ||
+          c.position.y < state.camera.y - collectibleMargin ||
+          c.position.y > state.camera.y + worldViewHeight + collectibleMargin) {
           return;
         }
 
         const sprite = c.type === 'coin' ? COIN_CONFIG.sprite : DIAMOND_CONFIG.sprite;
         const img = collectibleSpritesRef.current.get(sprite);
-        const bounce = Math.sin(animTime * 4 + c.position.x * 0.1) * 4;
-        const pulse = 1 + Math.sin(animTime * 3 + c.position.y * 0.1) * 0.15;
+        const bounce = mobileLite ? 0 : Math.sin(animTime * 4 + c.position.x * 0.1) * 4;
+        const pulse = mobileLite ? 1 : 1 + Math.sin(animTime * 3 + c.position.y * 0.1) * 0.15;
         // Make coins larger!
         const baseScale = c.type === 'coin' ? 5.0 : 2.5;
         const drawSize = c.radius * baseScale * pulse;
@@ -1608,10 +1701,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         }
 
         // Spin rotation for coins
-        if (c.type === 'coin') {
+        if (!mobileLite && c.type === 'coin') {
           const scaleX = Math.cos(animTime * 3 + c.position.x * 0.05);
           ctx.scale(Math.abs(scaleX) * 0.8 + 0.2, 1);
-        } else {
+        } else if (!mobileLite) {
           ctx.rotate(Math.sin(animTime * 2) * 0.2);
         }
 
@@ -1626,18 +1719,20 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         }
 
         // Sparkle particles
-        const sparkleCount = c.type === 'diamond' ? 4 : 2;
-        for (let i = 0; i < sparkleCount; i++) {
-          const sparkAngle = animTime * 2 + i * (Math.PI * 2 / sparkleCount);
-          const sparkDist = drawSize * 0.6;
-          const sx = Math.cos(sparkAngle) * sparkDist;
-          const sy = Math.sin(sparkAngle) * sparkDist;
-          const sparkSize = 2 + Math.sin(animTime * 6 + i) * 1;
-          ctx.fillStyle = c.type === 'coin' ? '#fff8dc' : '#e1f5fe';
-          ctx.globalAlpha = 0.6 + Math.sin(animTime * 4 + i) * 0.4;
-          ctx.beginPath();
-          ctx.arc(sx, sy, sparkSize, 0, Math.PI * 2);
-          ctx.fill();
+        if (!mobileLite) {
+          const sparkleCount = c.type === 'diamond' ? 4 : 2;
+          for (let i = 0; i < sparkleCount; i++) {
+            const sparkAngle = animTime * 2 + i * (Math.PI * 2 / sparkleCount);
+            const sparkDist = drawSize * 0.6;
+            const sx = Math.cos(sparkAngle) * sparkDist;
+            const sy = Math.sin(sparkAngle) * sparkDist;
+            const sparkSize = 2 + Math.sin(animTime * 6 + i) * 1;
+            ctx.fillStyle = c.type === 'coin' ? '#fff8dc' : '#e1f5fe';
+            ctx.globalAlpha = 0.6 + Math.sin(animTime * 4 + i) * 0.4;
+            ctx.beginPath();
+            ctx.arc(sx, sy, sparkSize, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
         ctx.globalAlpha = 1;
 
@@ -1671,36 +1766,50 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.save();
         ctx.translate(pu.position.x, pu.position.y);
 
-        // Animated glow ring
-        ctx.beginPath();
-        ctx.arc(0, 0, pu.radius * 1.5 * pulse, 0, Math.PI * 2);
-        ctx.strokeStyle = config.glowColor;
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        if (isMobileRef.current) {
+          // Lightweight mobile rendering.
+          ctx.globalAlpha = 0.22;
+          ctx.beginPath();
+          ctx.arc(0, 0, pu.radius * 1.15, 0, Math.PI * 2);
+          ctx.fillStyle = config.glowColor;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.beginPath();
+          ctx.arc(0, 0, pu.radius * 0.95, 0, Math.PI * 2);
+          ctx.fillStyle = config.color;
+          ctx.fill();
+        } else {
+          // Animated glow ring
+          ctx.beginPath();
+          ctx.arc(0, 0, pu.radius * 1.5 * pulse, 0, Math.PI * 2);
+          ctx.strokeStyle = config.glowColor;
+          ctx.lineWidth = 4;
+          ctx.stroke();
 
-        // Background circle
-        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, pu.radius);
-        gradient.addColorStop(0, config.color);
-        gradient.addColorStop(1, config.glowColor);
-        ctx.beginPath();
-        ctx.arc(0, 0, pu.radius * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
-        ctx.fill();
+          // Background circle
+          const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, pu.radius);
+          gradient.addColorStop(0, config.color);
+          gradient.addColorStop(1, config.glowColor);
+          ctx.beginPath();
+          ctx.arc(0, 0, pu.radius * pulse, 0, Math.PI * 2);
+          ctx.fillStyle = gradient;
+          ctx.fill();
 
-        // Inner glow
-        ctx.shadowColor = config.color;
-        if (!isMobileRef.current) ctx.shadowBlur = 20;
-        ctx.beginPath();
-        ctx.arc(0, 0, pu.radius * 0.8 * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        ctx.fill();
-        ctx.shadowBlur = 0;
+          // Inner glow
+          ctx.shadowColor = config.color;
+          ctx.shadowBlur = 20;
+          ctx.beginPath();
+          ctx.arc(0, 0, pu.radius * 0.8 * pulse, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,0.3)';
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
 
         // Rotating Sprite (fallback to emoji)
         const sprite = powerUpSpritesRef.current.get(config.sprite);
 
         ctx.save();
-        ctx.rotate(rotation);
+        if (!isMobileRef.current) ctx.rotate(rotation);
 
         if (sprite && sprite.complete) {
           const size = pu.radius * 1.4;
@@ -1766,6 +1875,26 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.restore();
       }
 
+      // Boost trail: cheap excitement effect with minimal overdraw.
+      if (state.player.isBoosting && !state.player.isDead) {
+        const boostTrailCount = isMobileRef.current ? 3 : 5;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = 'rgba(34, 211, 238, 0.45)';
+        ctx.lineWidth = isMobileRef.current ? 2 : 3;
+        for (let i = 1; i <= boostTrailCount; i++) {
+          const idx = Math.min(state.player.body.length - 1, i * 2);
+          const seg = state.player.body[idx];
+          if (!seg) break;
+          ctx.globalAlpha = 1 - (i / (boostTrailCount + 1));
+          ctx.beginPath();
+          ctx.moveTo(state.player.body[0].x, state.player.body[0].y);
+          ctx.lineTo(seg.x, seg.y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
       drawWormOptimized(ctx, state.player, state.camera, worldViewWidth, worldViewHeight, animTime);
 
       ctx.restore();
@@ -1773,7 +1902,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       // ==================== HUD DRAWING (World Scale Reset) ====================
       ctx.restore(); // Exit World Space Scaling
 
-      const padding = isMobileRef.current ? 30 : 25;
+      const ui = getUIScale();
+      const padding = Math.round(20 * ui);
 
       // Helper to draw glass panel
       const drawGlassPanel = (x: number, y: number, w: number, h: number, radius: number = 12) => {
@@ -1803,7 +1933,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       // --- 1. HUD LAYOUT REARRANGEMENT ---
 
       // -- Minimap (Now Top-Left) --
-      const mmSize = isMobileRef.current ? 55 : 80;
+      const mmSize = Math.round(Math.max(40, 55 * ui));
       const mmMargin = padding;
       const mmDiameter = mmSize * 2;
       const mmX = mmSize + mmMargin;
@@ -1848,8 +1978,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       ctx.restore();
 
       // -- Score & Wallet (Now Top-Left, next to Minimap) --
-      const statsW = isMobileRef.current ? 140 : 180;
-      const statsH = isMobileRef.current ? 60 : 75;
+      const statsW = Math.round(130 * ui);
+      const statsH = Math.round(55 * ui);
       const statsX = mmX + mmSize + 15;
       const statsY = padding;
 
@@ -1860,26 +1990,26 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       ctx.textBaseline = 'top';
 
       // Score Label
-      ctx.font = `bold ${isMobileRef.current ? '9px' : '11px'} Rajdhani`;
+      ctx.font = `bold ${Math.round(9 * ui)}px Rajdhani`;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
       ctx.fillText('SCORE', statsX + 12, statsY + 10);
 
       // Score Value
       ctx.fillStyle = '#ffffff';
-      ctx.font = `900 ${isMobileRef.current ? '18px' : '22px'} Orbitron`;
-      ctx.fillText(`${Math.floor(state.player.score)}`, statsX + 12, statsY + (isMobileRef.current ? 20 : 24));
+      ctx.font = `900 ${Math.round(17 * ui)}px Orbitron`;
+      ctx.fillText(`${Math.floor(state.player.score)}`, statsX + Math.round(10 * ui), statsY + Math.round(18 * ui));
 
       // Wallet Icons (Better Visuals)
       const coinImg = collectibleSpritesRef.current.get(COIN_CONFIG.sprite);
       const diamondImg = collectibleSpritesRef.current.get(DIAMOND_CONFIG.sprite);
-      const curY = statsY + (isMobileRef.current ? 42 : 54);
-      const iconSize = isMobileRef.current ? 14 : 18;
+      const curY = statsY + Math.round(38 * ui);
+      const iconSize = Math.round(13 * ui);
 
       if (coinImg && coinImg.complete) {
         ctx.drawImage(coinImg, statsX + 12, curY, iconSize, iconSize);
       }
       ctx.fillStyle = '#ffd700';
-      ctx.font = `700 ${isMobileRef.current ? '12px' : '15px'} Orbitron`;
+      ctx.font = `700 ${Math.round(11 * ui)}px Orbitron`;
       ctx.fillText(`${walletRef.current.coins}`, statsX + 12 + iconSize + 6, curY);
 
       const coinValWidth = ctx.measureText(`${walletRef.current.coins}`).width;
@@ -1895,8 +2025,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
 
       // -- Leaderboard (Top-Right Corner) --
-      const lbW = isMobileRef.current ? 120 : 160;
-      const lbH = isMobileRef.current ? 150 : 200;
+      const lbW = Math.round(115 * ui);
+      const lbH = Math.round(140 * ui);
       const lbX = canvasWidth - lbW - padding;
       const lbY = padding;
 
@@ -1904,7 +2034,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
       ctx.save();
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.font = `bold ${isMobileRef.current ? '11px' : '13px'} Orbitron`;
+      ctx.font = `bold ${Math.round(10 * ui)}px Orbitron`;
       ctx.textAlign = 'center';
       ctx.fillText('LEADERBOARD', lbX + lbW / 2, lbY + 18);
 
@@ -1912,16 +2042,17 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
       ctx.textAlign = 'left';
       sortedWorms.forEach((w, i) => {
-        const rowY = lbY + 42 + (i * (isMobileRef.current ? 16 : 22));
+        const rowY = lbY + Math.round(32 * ui) + (i * Math.round(16 * ui));
         const isMe = w.id === 'player';
-        ctx.font = `${isMe ? '700' : '500'} ${isMobileRef.current ? '10px' : '12px'} Rajdhani`;
+        ctx.font = `${isMe ? '700' : '500'} ${Math.round(10 * ui)}px Rajdhani`;
 
         ctx.fillStyle = i < 3 ? '#ffd700' : 'rgba(255,255,255,0.4)';
         ctx.fillText(`${i + 1}.`, lbX + 10, rowY);
 
         ctx.fillStyle = isMe ? '#4ade80' : 'rgba(255,255,255,0.8)';
         let cName = w.name;
-        if (cName.length > (isMobileRef.current ? 8 : 10)) cName = cName.substring(0, isMobileRef.current ? 7 : 9) + '..';
+        const maxNameLen = Math.round(8 * ui);
+        if (cName.length > maxNameLen) cName = cName.substring(0, maxNameLen - 1) + '..';
         ctx.fillText(cName, lbX + 26, rowY);
 
         ctx.textAlign = 'right';
@@ -1933,9 +2064,9 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
 
       // --- 2. ACTIVE POWER-UPS (Left Edge) ---
-      let puy = isMobileRef.current ? canvasHeight / 2 - 50 : 150;
-      const pbW = isMobileRef.current ? 100 : 130;
-      const pbH = isMobileRef.current ? 20 : 24;
+      let puy = Math.round(120 * ui);
+      const pbW = Math.round(95 * ui);
+      const pbH = Math.round(18 * ui);
       const pTypes: (keyof typeof state.player.powerUps)[] = ['magnet', 'speed', 'freeze', 'shield'];
 
       pTypes.forEach(type => {
@@ -1961,7 +2092,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           }
 
           ctx.fillStyle = 'white';
-          ctx.font = `bold ${isMobileRef.current ? '9px' : '10px'} Orbitron`;
+          ctx.font = `bold ${Math.round(8 * ui)}px Orbitron`;
           ctx.textAlign = 'right';
           ctx.fillText(`${state.player.powerUps[type].toFixed(1)}s`, padding + pbW - 6, puy + pbH / 2 + 4);
 
@@ -1981,7 +2112,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         if (!isMobileRef.current) ctx.shadowBlur = 15;
         ctx.fillStyle = 'white';
 
-        const fontSize = isMobileRef.current ? 20 : 32;
+        const fontSize = Math.round(24 * ui);
         ctx.font = `900 ${fontSize}px Orbitron`;
 
         const textY = 80;

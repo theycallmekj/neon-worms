@@ -1,88 +1,115 @@
+// ---- Neon Worms Audio Controller ----
+// Idempotent init, persistent BGM, bounded SFX pool, throttled playback.
+
+const SFX_POOL_SIZE = 3;          // max simultaneous clones per sound key
+const SFX_THROTTLE_MS = 60;       // minimum ms between plays of the same SFX
+
+type BGMState = 'stopped' | 'playing' | 'starting';
+
+interface SFXPool {
+    elements: HTMLAudioElement[];
+    cursor: number;
+    lastPlayedAt: number;
+}
+
 export class AudioController {
-    private sounds: Map<string, HTMLAudioElement>;
-    private initialized: boolean = false;
-    private musicStarted: boolean = false;
+    private bgm: HTMLAudioElement | null = null;
+    private bgmState: BGMState = 'stopped';
 
-    constructor() {
-        this.sounds = new Map();
-    }
+    private sfxTemplates = new Map<string, HTMLAudioElement>();
+    private sfxPools = new Map<string, SFXPool>();
 
+    private initialized = false;
+
+    // ---- Idempotent Init ----
     preload() {
-        if (typeof window === 'undefined') return;
+        if (this.initialized || typeof window === 'undefined') return;
+        this.initialized = true;
 
-        const soundFiles = {
-            'game': '/sfx/Game.opus',
-            'coin': '/sfx/Coin.opus',
-            'food': '/sfx/Food.opus',
-            'collision': '/sfx/Collision.opus',
-            'powerup': '/sfx/Powerup.opus'
+        const sfxFiles: Record<string, { path: string; vol: number }> = {
+            coin: { path: '/sfx/Coin.opus', vol: 0.5 },
+            food: { path: '/sfx/Food.opus', vol: 0.3 },
+            collision: { path: '/sfx/Collision.opus', vol: 0.7 },
+            powerup: { path: '/sfx/Powerup.opus', vol: 0.6 },
         };
 
-        Object.entries(soundFiles).forEach(([key, path]) => {
-            const audio = new Audio(path);
+        // --- BGM (single persistent element) ---
+        this.bgm = new Audio('/sfx/Game.opus');
+        this.bgm.loop = true;
+        this.bgm.volume = 0.4;
+        // Preload hint
+        this.bgm.preload = 'auto';
 
-            // Volume tuning
-            if (key === 'food') audio.volume = 0.3; // Requested lower volume
-            if (key === 'game') {
-                audio.volume = 0.4; // Background music shouldn't be too loud
-                audio.loop = true;
+        // --- SFX templates + pools ---
+        for (const [key, cfg] of Object.entries(sfxFiles)) {
+            const template = new Audio(cfg.path);
+            template.volume = cfg.vol;
+            template.preload = 'auto';
+            this.sfxTemplates.set(key, template);
+
+            // Pre-create a small pool of clones for each SFX
+            const pool: SFXPool = { elements: [], cursor: 0, lastPlayedAt: 0 };
+            for (let i = 0; i < SFX_POOL_SIZE; i++) {
+                const el = new Audio(cfg.path);
+                el.volume = cfg.vol;
+                el.preload = 'auto';
+                pool.elements.push(el);
             }
-            if (key === 'coin') audio.volume = 0.5;
-            if (key === 'powerup') audio.volume = 0.6;
-            if (key === 'collision') audio.volume = 0.7;
-
-            this.sounds.set(key, audio);
-        });
-
-        this.initialized = true;
+            this.sfxPools.set(key, pool);
+        }
     }
 
-    play(key: string, forceClone: boolean = false) {
+    // ---- SFX Playback (pooled + throttled) ----
+    play(key: string, _forceClone: boolean = false) {
         if (!this.initialized) this.preload();
 
-        const original = this.sounds.get(key);
-        if (!original) return;
+        const pool = this.sfxPools.get(key);
+        if (!pool) return;
 
-        if (forceClone) {
-            // Allow overlapping sounds (e.g. rapid coin pickup)
-            const clone = original.cloneNode() as HTMLAudioElement;
-            clone.volume = original.volume;
-            clone.play().catch(e => console.warn('Audio play failed', e));
-        } else {
-            if (original.paused || original.ended) {
-                original.play().catch(e => console.warn('Audio play failed', e));
-            } else {
-                // If already playing, reset to start
-                original.currentTime = 0;
-                original.play().catch(e => console.warn('Audio play failed', e));
-            }
-        }
+        // Throttle: skip if played too recently
+        const now = performance.now();
+        if (now - pool.lastPlayedAt < SFX_THROTTLE_MS) return;
+        pool.lastPlayedAt = now;
+
+        // Round-robin through the pre-allocated pool
+        const el = pool.elements[pool.cursor % pool.elements.length];
+        pool.cursor++;
+
+        // Reset and play
+        el.currentTime = 0;
+        el.play().catch(() => { /* expected before interaction */ });
     }
 
+    // ---- BGM Start (deduplicated) ----
     requestMusicStart() {
-        if (this.musicStarted) return;
+        if (!this.initialized) this.preload();
+        if (!this.bgm) return;
 
-        // Prevent multiple rapid calls while promise is pending
-        if ((this as any)._isTryingToPlay) return;
-        (this as any)._isTryingToPlay = true;
+        // Already playing or in the middle of starting — do nothing
+        if (this.bgmState === 'playing' || this.bgmState === 'starting') return;
 
-        const music = this.sounds.get('game');
-        if (music) {
-            music.play().then(() => {
-                this.musicStarted = true;
-                (this as any)._isTryingToPlay = false;
-            }).catch(e => {
-                (this as any)._isTryingToPlay = false;
-                // Expected if no user interaction yet
-            });
-        }
+        this.bgmState = 'starting';
+        this.bgm.play()
+            .then(() => { this.bgmState = 'playing'; })
+            .catch(() => { this.bgmState = 'stopped'; /* no interaction yet */ });
     }
 
+    // ---- BGM Stop ----
     stop(key: string) {
-        const audio = this.sounds.get(key);
-        if (audio) {
-            audio.pause();
-            audio.currentTime = 0;
+        if (key === 'game' && this.bgm) {
+            this.bgm.pause();
+            // Don't reset currentTime — allows seamless resume
+            this.bgmState = 'stopped';
+            return;
+        }
+
+        // For SFX: stop all pool elements
+        const pool = this.sfxPools.get(key);
+        if (pool) {
+            for (const el of pool.elements) {
+                el.pause();
+                el.currentTime = 0;
+            }
         }
     }
 }

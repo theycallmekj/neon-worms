@@ -235,17 +235,12 @@ export const updateWormPosition = (worm: Worm, mapSize: number, dt: number): boo
   }
 
   // 3. Move Body - optimized with in-place mutation
-  // Shift all segments back and add new head
+  // Insert a head sample each tick; apply length correction at the tail.
   const targetDist = SEGMENT_DISTANCE;
   const targetDistSq = targetDist * targetDist;
 
   // Calculate target length with a cap for performance
   const targetLength = Math.min(300, 20 + Math.floor(worm.score / 8)); // Cap at 300 segments, faster growth
-
-  // Remove excess segments first
-  while (worm.body.length > targetLength) {
-    worm.body.pop();
-  }
 
   // Add new head position
   worm.body.unshift({ x: clampedX, y: clampedY });
@@ -267,8 +262,10 @@ export const updateWormPosition = (worm: Worm, mapSize: number, dt: number): boo
     }
   }
 
-  // Remove the last segment (since we added one at the front)
-  if (worm.body.length > targetLength) {
+  // Tail-only length correction:
+  // - growth keeps extra segment(s), which visually extends from the tail
+  // - shrink trims from tail
+  while (worm.body.length > targetLength) {
     worm.body.pop();
   }
 

@@ -10,7 +10,9 @@
 html,
 body {
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
+  /* dynamic viewport height - address bar aware */
   margin: 0;
   padding: 0;
   position: fixed;
@@ -22,7 +24,8 @@ body {
 
 #root {
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   touch-action: manipulation;
 }
