@@ -426,8 +426,9 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
     const head = w.body[0];
     // Quick bounds check - skip if worm head is far off screen (using world dimensions)
-    if (head.x < camera.x - 300 || head.x > camera.x + worldWidth + 300 ||
-      head.y < camera.y - 300 || head.y > camera.y + worldHeight + 300) return;
+    // Relaxed margin to 1000 to account for long snake bodies trailing into the viewport
+    if (head.x < camera.x - 1000 || head.x > camera.x + worldWidth + 1000 ||
+      head.y < camera.y - 1000 || head.y > camera.y + worldHeight + 1000) return;
 
     ctx.save();
     if (w.isInvincible) {
@@ -448,8 +449,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       const pos = w.body[i];
       // Skip segments outside viewport or with invalid coordinates
       if (!pos || isNaN(pos.x) || isNaN(pos.y) ||
-        pos.x < camera.x - 100 || pos.x > camera.x + worldWidth + 100 ||
-        pos.y < camera.y - 100 || pos.y > camera.y + worldHeight + 100) continue;
+        pos.x < camera.x - 200 || pos.x > camera.x + worldWidth + 200 ||
+        pos.y < camera.y - 200 || pos.y > camera.y + worldHeight + 200) continue;
 
       const adjustedRadius = w.radius * (skipFactor > 1 ? 1.2 : 1);
 
@@ -1458,7 +1459,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
 
       // Food (optimized with cached sprites and frustum culling)
-      const viewMargin = 100;
+      const viewMargin = 400; // Increased margin to preventing popping
       const visibleFood = state.food.filter(f =>
         f.position.x >= state.camera.x - viewMargin &&
         f.position.x <= state.camera.x + worldViewWidth + viewMargin &&
@@ -1549,7 +1550,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         // Calculate the actual visible world bounds
         const worldViewWidth = canvasWidth / zoom;
         const worldViewHeight = canvasHeight / zoom;
-        const margin = 100; // Extra margin for animations/bounce
+        const margin = 300; // Extra margin for animations/bounce
 
         if (c.position.x < state.camera.x - margin ||
           c.position.x > state.camera.x + worldViewWidth + margin ||
@@ -1630,9 +1631,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
       // Draw Power-Ups with cool effects!
       state.powerUps.forEach(pu => {
-        // Check if visible
-        if (pu.position.x < state.camera.x - 50 || pu.position.x > state.camera.x + canvasWidth + 50 ||
-          pu.position.y < state.camera.y - 50 || pu.position.y > state.camera.y + canvasHeight + 50) return;
+        // Check if visible - Fixed bug: Use worldViewWidth/Height, not canvasWidth
+        // Also increased margin to 300
+        if (pu.position.x < state.camera.x - 300 || pu.position.x > state.camera.x + worldViewWidth + 300 ||
+          pu.position.y < state.camera.y - 300 || pu.position.y > state.camera.y + worldViewHeight + 300) return;
 
         const config = POWER_UP_CONFIG[pu.type];
         const pulse = Math.sin(animTime * 4) * 0.2 + 0.8;
