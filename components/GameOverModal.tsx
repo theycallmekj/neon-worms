@@ -1,114 +1,148 @@
 import React, { useState, useEffect } from 'react';
-import NeonButton from './NeonButton';
 
 interface GameOverModalProps {
   score: number;
   time: number;
   killedBy: string;
+  killCount: number;
+  rank: number;
   onRestart: () => void;
-  onRevive: () => void;
+  onHome: () => void;
 }
 
-const GameOverModal: React.FC<GameOverModalProps> = ({ score, time, killedBy, onRestart, onRevive }) => {
+const GameOverModal: React.FC<GameOverModalProps> = ({ score, time, killedBy, killCount, rank, onRestart, onHome }) => {
   const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
+    // Entrance animation
     setTimeout(() => setShowContent(true), 100);
   }, []);
-
-  const taunts = [
-    "Better luck next time!",
-    "That was slippery...",
-    "Too greedy!",
-    "Zig when you should zag!",
-    "Back to the drawing board!",
-    "The food chain is brutal!",
-    "Ouch! That's gotta hurt!",
-    "Worm down! 🐛",
-  ];
-  const taunt = taunts[Math.floor(Math.random() * taunts.length)];
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center sm:p-4 font-sans safe-area-inset">
-      {/* Dark overlay with Red tint */}
-      <div
-        className="absolute inset-0 bg-black/95 sm:bg-black/80 backdrop-blur-md transition-opacity duration-500"
-        style={{ opacity: showContent ? 1 : 0 }}
-      />
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(circle at center, transparent 0%, rgba(139, 0, 0, 0.4) 100%)' }}
-      />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in pointer-events-auto overflow-hidden">
 
-      {/* Modal Card - Full Screen on Mobile */}
-      <div
-        className={`glass-panel relative z-10 w-full h-full sm:h-auto sm:max-w-sm sm:rounded-3xl rounded-none overflow-hidden border-x-0 sm:border border-red-500/30 shadow-[0_0_50px_rgba(220,20,60,0.4)] transform transition-all duration-500 flex flex-col ${showContent ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-95'
-          }`}
-      >
-        {/* Header - Vertically Centered Content on Mobile */}
-        <div className="flex-1 flex flex-col">
-          <div className="bg-gradient-to-b from-red-900/80 to-red-950/80 p-8 sm:p-6 text-center border-b border-red-500/20 relative overflow-hidden shrink-0">
-            <div className="absolute inset-0 bg-[url('/assets/ui/noise.png')] opacity-10 mix-blend-overlay"></div>
-            <div className="text-6xl sm:text-5xl mb-4 sm:mb-2 animate-bounce">💀</div>
-            <h2 className="font-orbitron font-black text-5xl sm:text-4xl text-white tracking-widest leading-none drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]">
-              WASTED
-            </h2>
-            <p className="font-rajdhani text-xl sm:text-lg text-red-200 mt-3 sm:mt-2 italic font-semibold">"{taunt}"</p>
+      {/* Background - Spotlight / Disco Effect */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Main Spotlight */}
+        <div className="absolute top-[-50%] left-1/2 -translate-x-1/2 w-[150%] h-[150%] bg-gradient-radial from-[#8b5cf6]/40 via-transparent to-transparent opacity-60 blur-3xl animate-pulse-slow"></div>
+        {/* Ambient Particles */}
+        <div className="absolute inset-0 opacity-20 bg-[url('/assets/ui/noise.png')] mix-blend-overlay"></div>
+      </div>
+
+      {/* Main Container - Responsive Layout (Landscape vs Portrait) */}
+      <div className={`relative z-10 w-full max-w-4xl h-full max-h-screen p-4 sm:p-6 transition-all duration-700 flex flex-col items-center justify-center ${showContent ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-20 opacity-0 scale-95'}`}>
+
+        {/* LANDSCAPE LAYOUT DETECTION: If height is small (mobile landscape), use row. Else col. */}
+        <div className="w-full h-full flex flex-col landscape:flex-row landscape:items-center landscape:justify-center landscape:gap-8 portrait:flex-col portrait:justify-between portrait:max-w-md">
+
+          {/* LEFT SIDE (Landscape) / TOP (Portrait) - Trophy & Title */}
+          <div className="flex flex-col items-center justify-center flex-1 landscape:max-w-[50%]">
+
+            {/* Title */}
+            <div className="relative mb-2 w-full text-center">
+              <h1 className="font-orbitron font-black text-3xl sm:text-5xl text-transparent bg-clip-text bg-gradient-to-b from-[#fde047] to-[#d97706] drop-shadow-[0_4px_0_rgba(180,83,9,1)] italic tracking-wider transform -skew-x-6">
+                Game Over
+              </h1>
+            </div>
+
+            {/* Trophy Graphic */}
+            <div className="relative w-32 h-32 sm:w-56 sm:h-56 my-2 animate-bounce-gentle">
+              {/* Glow behind trophy */}
+              <div className="absolute inset-0 bg-yellow-500/30 blur-3xl rounded-full scale-125"></div>
+
+              {/* Trophy SVG */}
+              <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                <defs>
+                  <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#fef08a" />
+                    <stop offset="50%" stopColor="#eab308" />
+                    <stop offset="100%" stopColor="#a16207" />
+                  </linearGradient>
+                </defs>
+                {/* Simplified Cup Shape */}
+                <path d="M40 50 Q40 20 100 20 Q160 20 160 50 L140 130 Q140 160 100 160 Q60 160 60 130 Z" fill="url(#goldGradient)" />
+                {/* Handles */}
+                <path d="M40 60 C10 60 10 100 40 110" fill="none" stroke="#eab308" strokeWidth="12" strokeLinecap="round" />
+                <path d="M160 60 C190 60 190 100 160 110" fill="none" stroke="#eab308" strokeWidth="12" strokeLinecap="round" />
+                {/* Base */}
+                <rect x="70" y="160" width="60" height="15" fill="#854d0e" rx="4" />
+                <rect x="60" y="175" width="80" height="15" fill="#a16207" rx="4" />
+                {/* Shine */}
+                <path d="M70 40 L90 40 L80 140 L60 140 Z" fill="white" fillOpacity="0.2" />
+              </svg>
+
+              {/* Rank Badge */}
+              <div className="absolute top-[35%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-white/10 backdrop-blur-sm rounded-full border-2 border-yellow-200 flex items-center justify-center shadow-inner">
+                <span className="font-orbitron font-black text-xl sm:text-2xl text-[#713f12] drop-shadow-sm">{rank}</span>
+              </div>
+            </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="p-6 sm:p-6 bg-black/40 space-y-4 flex-1 flex flex-col justify-center">
-            <div className="flex gap-4 sm:gap-3">
-              {/* Score */}
-              <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl sm:rounded-xl p-4 sm:p-3 text-center flex flex-col items-center justify-center relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <span className="font-rajdhani text-sm sm:text-xs font-bold text-white/50 uppercase tracking-widest mb-1">Score</span>
-                <span className="font-orbitron font-black text-3xl sm:text-2xl text-yellow-400 drop-shadow-md">{Math.floor(score)}</span>
-              </div>
-              {/* Time */}
-              <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl sm:rounded-xl p-4 sm:p-3 text-center flex flex-col items-center justify-center relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <span className="font-rajdhani text-sm sm:text-xs font-bold text-white/50 uppercase tracking-widest mb-1">Survived</span>
-                <span className="font-orbitron font-black text-3xl sm:text-2xl text-cyan-400 drop-shadow-md">{formatTime(time)}</span>
+          {/* RIGHT SIDE (Landscape) / BOTTOM (Portrait) - Stats & Buttons */}
+          <div className="flex flex-col w-full landscape:w-[50%] landscape:max-w-md landscape:justify-center gap-4">
+
+            {/* Stats Card */}
+            <div className="w-full bg-[#4c1d95]/80 backdrop-blur-md rounded-2xl border-t-2 border-white/20 p-4 shadow-2xl relative overflow-hidden group">
+              <div className="space-y-2 sm:space-y-3 relative z-10">
+                {/* Score Row */}
+                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">⭐</span>
+                    <span className="font-rajdhani font-bold text-white/80 text-base sm:text-lg uppercase tracking-wider">Score</span>
+                  </div>
+                  <span className="font-orbitron font-black text-xl sm:text-2xl text-yellow-300 drop-shadow-md">{Math.floor(score).toLocaleString()}</span>
+                </div>
+
+                {/* Kill Row */}
+                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">⚔️</span>
+                    <span className="font-rajdhani font-bold text-white/80 text-base sm:text-lg uppercase tracking-wider">Kills</span>
+                  </div>
+                  <span className="font-orbitron font-black text-xl sm:text-2xl text-white drop-shadow-md">{killCount}</span>
+                </div>
+
+                {/* Time Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">⏱️</span>
+                    <span className="font-rajdhani font-bold text-white/80 text-base sm:text-lg uppercase tracking-wider">Time</span>
+                  </div>
+                  <span className="font-orbitron font-black text-xl sm:text-2xl text-blue-200 drop-shadow-md">{formatTime(time)}</span>
+                </div>
               </div>
             </div>
 
-            {/* Killed By */}
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 sm:p-3 text-center my-4">
-              <span className="font-rajdhani text-base sm:text-sm text-red-200 font-medium">Eliminated by </span>
-              <span className="font-orbitron text-lg sm:text-base font-bold text-red-400 ml-1">{killedBy}</span>
+            {/* Buttons Grid */}
+            <div className="w-full grid grid-cols-2 gap-4">
+              {/* Home Button */}
+              <button
+                onClick={onHome}
+                className="group relative h-12 sm:h-14 bg-[#f43f5e] hover:bg-[#e11d48] rounded-xl border-b-[4px] sm:border-b-[6px] border-[#9f1239] active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center shadow-lg"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="drop-shadow-md">
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                </svg>
+              </button>
+
+              {/* Restart Button */}
+              <button
+                onClick={onRestart}
+                className="group relative h-12 sm:h-14 bg-[#fbbf24] hover:bg-[#f59e0b] rounded-xl border-b-[4px] sm:border-b-[6px] border-[#b45309] active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center shadow-lg"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white" className="drop-shadow-md group-hover:rotate-180 transition-transform duration-500">
+                  <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                </svg>
+              </button>
             </div>
+
           </div>
-        </div>
-
-        {/* Action Buttons - Bottom Fixed on Mobile */}
-        <div className="p-6 sm:p-6 bg-black/60 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none space-y-3 sm:pt-2 border-t border-white/5 sm:border-0 shrink-0">
-          <NeonButton
-            variant="primary"
-            fullWidth
-            size="lg"
-            onClick={onRevive}
-            className="!bg-gradient-to-r !from-green-500 !to-emerald-600 !border-green-400/50 !shadow-[0_0_20px_rgba(34,197,94,0.4)] py-4 sm:py-3 text-xl sm:text-lg tracking-widest"
-            icon="💚"
-          >
-            REVIVE
-          </NeonButton>
-
-          <NeonButton
-            variant="secondary"
-            fullWidth
-            onClick={onRestart}
-            icon="🔄"
-            className="py-4 sm:py-3"
-          >
-            Main Menu
-          </NeonButton>
         </div>
       </div>
     </div>

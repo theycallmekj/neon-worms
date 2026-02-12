@@ -10,7 +10,7 @@ interface GameCanvasProps {
   playerName: string;
   playerSkin: Skin;
   botNameList: string[];
-  onGameOver: (score: number, time: number, killedBy: string) => void;
+  onGameOver: (score: number, time: number, killedBy: string, killCount: number) => void;
   isPaused: boolean;
   pitCount?: number;
   arenaId?: string;
@@ -169,39 +169,44 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
   // Expose revive method to parent
   useImperativeHandle(ref, () => ({
-    revive: () => {
-      if (stateRef.current && stateRef.current.player.isDead) {
-        stateRef.current.player.isDead = false;
-        stateRef.current.player.isInvincible = true;
-        stateRef.current.player.invincibilityTimer = 3.0;
-        stateRef.current.isGameOver = false;
-        // Keep score but reset length slightly
-        stateRef.current.player.body = stateRef.current.player.body.slice(0, Math.max(5, Math.floor(stateRef.current.player.body.length / 2)));
+    revive() {
+      const state = stateRef.current;
+      if (!state || !state.player.isDead) return;
 
-        // Teleport to safe circular spawn
-        const safePos = randomPosition(MAP_SIZE);
-        const oldHead = stateRef.current.player.body[0];
-        const dx = safePos.x - oldHead.x;
-        const dy = safePos.y - oldHead.y;
-        // Move entire body to new location
-        stateRef.current.player.body = stateRef.current.player.body.map(seg => ({ x: seg.x + dx, y: seg.y + dy }));
+      // Reset player state
+      state.player.isDead = false;
+      state.player.isInvincible = true;
+      state.player.invincibilityTimer = 5; // 5 seconds of safety
+      state.player.isFrozen = false;
+      state.player.powerUps = { magnet: 0, speed: 0, freeze: 0, shield: 3 }; // Give a shield on revive
+      state.isGameOver = false;
 
-        const head = stateRef.current.player.body[0];
-        stateRef.current.bots.forEach(bot => {
-          if (Vec2.dist(head, bot.body[0]) < 300) {
-            bot.body.forEach((seg, i) => {
-              const dir = Vec2.norm(Vec2.sub(seg, head));
-              // Safety check for direction
-              if (isNaN(dir.x) || isNaN(dir.y)) {
-                // Fallback: push directly away from player center or random
-                bot.body[i] = Vec2.add(seg, { x: 200, y: 0 });
-              } else {
-                bot.body[i] = Vec2.add(seg, Vec2.mul(dir, 200));
-              }
-            });
-          }
-        });
-      }
+      // Find a safe spot or just reset to center
+      const spawnPos = { x: MAP_SIZE / 2, y: MAP_SIZE / 2 };
+
+      // Calculate head movement to new position
+      const oldHead = state.player.body[0];
+      const dx = spawnPos.x - oldHead.x;
+      const dy = spawnPos.y - oldHead.y;
+
+      // Move entire body to new location
+      state.player.body = state.player.body.map(seg => ({ x: seg.x + dx, y: seg.y + dy }));
+
+      // Clear pits near spawn
+      state.pits = state.pits.filter(p => Vec2.dist(p.position, spawnPos) > 400);
+
+      // Clear bots near spawn
+      state.bots.forEach(bot => {
+        if (Vec2.dist(bot.body[0], spawnPos) < 500) {
+          bot.isFrozen = true; // Freeze them briefly
+          // Or move them away
+          const angle = Math.atan2(bot.body[0].y - spawnPos.y, bot.body[0].x - spawnPos.x);
+          bot.body.forEach((seg, j) => {
+            seg.x += Math.cos(angle) * 1000;
+            seg.y += Math.sin(angle) * 1000;
+          });
+        }
+      });
     }
   }));
 
@@ -966,7 +971,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         if (playerHitWall) {
           state.isGameOver = true;
           state.player.isDead = true;
-          onGameOver(state.player.score, (Date.now() - startTimeRef.current) / 1000, 'The Wall');
+          onGameOver(state.player.score, (Date.now() - startTimeRef.current) / 1000, 'The Wall', state.player.killCount);
         }
 
         // Check pit collisions for player
@@ -977,7 +982,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
               state.isGameOver = true;
               state.player.isDead = true;
               const pitConfig = PIT_CONFIG[pit.type];
-              onGameOver(state.player.score, (Date.now() - startTimeRef.current) / 1000, pitConfig.name);
+              onGameOver(state.player.score, (Date.now() - startTimeRef.current) / 1000, pitConfig.name, state.player.killCount);
               break;
             }
           }
@@ -1046,7 +1051,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           let killerName = 'Yourself';
           const killerWorm = allWorms.find(w => w.id === killerId);
           if (killerWorm) killerName = killerWorm.name;
-          onGameOver(state.player.score, (Date.now() - startTimeRef.current) / 1000, killerName);
+          onGameOver(state.player.score, (Date.now() - startTimeRef.current) / 1000, killerName, state.player.killCount);
         }
 
         // Handle bot deaths from collisions
@@ -1538,11 +1543,20 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         }
       }
 
-      // Draw Collectibles (Coins & Diamonds) with animations
+      // 3. Draw Collectibles (Coins & Diamonds) with animations
       state.collectibles.forEach(c => {
-        // Frustum culling
-        if (c.position.x < state.camera.x - 40 || c.position.x > state.camera.x + canvasWidth + 40 ||
-          c.position.y < state.camera.y - 40 || c.position.y > state.camera.y + canvasHeight + 40) return;
+        // Zoom-Aware Frustum culling
+        // Calculate the actual visible world bounds
+        const worldViewWidth = canvasWidth / zoom;
+        const worldViewHeight = canvasHeight / zoom;
+        const margin = 100; // Extra margin for animations/bounce
+
+        if (c.position.x < state.camera.x - margin ||
+          c.position.x > state.camera.x + worldViewWidth + margin ||
+          c.position.y < state.camera.y - margin ||
+          c.position.y > state.camera.y + worldViewHeight + margin) {
+          return;
+        }
 
         const sprite = c.type === 'coin' ? COIN_CONFIG.sprite : DIAMOND_CONFIG.sprite;
         const img = collectibleSpritesRef.current.get(sprite);

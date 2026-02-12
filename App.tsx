@@ -5,6 +5,7 @@ import MainMenu from './components/MainMenu';
 import GameOverModal from './components/GameOverModal';
 import SettingsModal from './components/SettingsModal';
 import UpgradesModal from './components/UpgradesModal';
+import ReviveModal from './components/ReviveModal';
 import { BOT_NAMES, DEFAULT_PIT_COUNT, ALL_PIT_TYPES, DEFAULT_ARENA, UPGRADE_COSTS, MAX_UPGRADE_LEVEL, SKINS } from './constants';
 import { GameSettings, PlayerWallet, UpgradeLevels, PowerUpType, Skin } from './types';
 
@@ -42,7 +43,9 @@ const App: React.FC = () => {
   const [isUpgradesOpen, setIsUpgradesOpen] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [playerSkin, setPlayerSkin] = useState<Skin>(SKINS[0]);
-  const [lastGameStats, setLastGameStats] = useState({ score: 0, time: 0, killedBy: '' });
+  const [lastGameStats, setLastGameStats] = useState({ score: 0, time: 0, killedBy: '', killCount: 0 });
+  const [isReviveVisible, setIsReviveVisible] = useState(false);
+  const [reviveCost, setReviveCost] = useState(5);
   const [gameSettings, setGameSettings] = useState<GameSettings>({
     pitCount: DEFAULT_PIT_COUNT,
     enabledPitTypes: ALL_PIT_TYPES,
@@ -75,23 +78,49 @@ const App: React.FC = () => {
     setPlayerSkin(skin);
     setAppState('PLAYING');
     setIsGameOverVisible(false);
+    setIsReviveVisible(false);
+    setReviveCost(5); // Reset revive cost
   };
 
-  const handleGameOver = (score: number, time: number, killedBy: string) => {
-    setLastGameStats({ score, time, killedBy });
+  const handleGameOver = (score: number, time: number, killedBy: string, killCount: number) => {
+    setLastGameStats({ score, time, killedBy, killCount });
+    setIsReviveVisible(true); // Show Revive Modal first
+  };
+
+  const handleReviveWithDiamonds = () => {
+    if (wallet.diamonds >= reviveCost) {
+      handleWalletChange({
+        ...wallet,
+        diamonds: wallet.diamonds - reviveCost
+      });
+      setReviveCost(prev => prev * 2); // Double cost
+      setIsReviveVisible(false);
+      gameRef.current?.revive();
+    }
+  };
+
+  const handleReviveWithAd = () => {
+    // Ad revive is visual for now but functionally same as diamond for testing
+    setIsReviveVisible(false);
+    gameRef.current?.revive();
+  };
+
+  const handleSkipRevive = () => {
+    setIsReviveVisible(false);
     setIsGameOverVisible(true);
   };
 
   const handleRestart = () => {
-    setAppState('MENU');
     setIsGameOverVisible(false);
+    setReviveCost(5); // Reset revive cost
+    // We can either re-mount or just signal reset
+    setAppState('MENU');
+    setTimeout(() => handleStartGame(playerName, playerSkin), 50);
   };
 
-  const handleRevive = () => {
-    if (gameRef.current) {
-      gameRef.current.revive();
-      setIsGameOverVisible(false);
-    }
+  const handleHome = () => {
+    setIsGameOverVisible(false);
+    setAppState('MENU');
   };
 
   const handleOpenSettings = () => {
@@ -164,7 +193,7 @@ const App: React.FC = () => {
           playerSkin={playerSkin}
           botNameList={BOT_NAMES}
           onGameOver={handleGameOver}
-          isPaused={isGameOverVisible}
+          isPaused={isGameOverVisible || isReviveVisible}
           pitCount={gameSettings.pitCount}
           enabledPitTypes={gameSettings.enabledPitTypes}
           arenaId={gameSettings.arenaId}
@@ -175,13 +204,26 @@ const App: React.FC = () => {
         />
       )}
 
+      {isReviveVisible && (
+        <ReviveModal
+          countdownSeconds={3}
+          diamondCost={reviveCost}
+          wallet={wallet}
+          onReviveWithDiamonds={handleReviveWithDiamonds}
+          onReviveWithAd={handleReviveWithAd}
+          onSkip={handleSkipRevive}
+        />
+      )}
+
       {isGameOverVisible && (
         <GameOverModal
           score={lastGameStats.score}
           time={lastGameStats.time}
           killedBy={lastGameStats.killedBy}
+          killCount={lastGameStats.killCount}
+          rank={Math.floor(Math.random() * 100) + 1} // Randomized rank for now
           onRestart={handleRestart}
-          onRevive={handleRevive}
+          onHome={handleHome}
         />
       )}
 
