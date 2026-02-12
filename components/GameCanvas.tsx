@@ -59,7 +59,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
   // Power-up spawning
   const lastPowerUpSpawnRef = useRef<number>(Date.now());
-  const activePowerUpMessageRef = useRef<{ text: string; color: string; timer: number } | null>(null);
+  const activePowerUpMessageRef = useRef<{ text: string; type?: PowerUpType; color: string; timer: number } | null>(null);
 
   // Coin spawning
   const lastCoinSpawnRef = useRef<number>(Date.now());
@@ -1299,9 +1299,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             const scaledDuration = pu.duration * UPGRADE_DURATION_MULTIPLIER(upgradeLevel);
             state.player.powerUps[pu.type] = scaledDuration;
 
-            // Show collection message
+            // Show collection message (FIX: Use type instead of emoji)
             activePowerUpMessageRef.current = {
-              text: `${config.emoji} ${config.name}!`,
+              text: `${config.name}!`,
+              type: pu.type, // Store type to look up sprite
               color: config.color,
               timer: 2
             };
@@ -2044,11 +2045,37 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.save();
         ctx.globalAlpha = msgAlpha;
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.shadowColor = msg.color;
         ctx.shadowBlur = 15;
         ctx.fillStyle = 'white';
-        ctx.font = `900 ${isMobileRef.current ? '20px' : '32px'} Orbitron`;
-        ctx.fillText(msg.text, canvasWidth / 2, 80);
+
+        const fontSize = isMobileRef.current ? 20 : 32;
+        ctx.font = `900 ${fontSize}px Orbitron`;
+
+        const textY = 80;
+        const textWidth = ctx.measureText(msg.text).width;
+
+        // Draw Icon if available
+        if (msg.type) {
+          const config = POWER_UP_CONFIG[msg.type];
+          const sprite = powerUpSpritesRef.current.get(config.sprite);
+          if (sprite && sprite.complete) {
+            const iconSize = fontSize * 1.5;
+            const spacing = 15;
+            const totalWidth = textWidth + iconSize + spacing;
+            const startX = (canvasWidth - totalWidth) / 2;
+
+            ctx.drawImage(sprite, startX, textY - iconSize / 2, iconSize, iconSize);
+            ctx.textAlign = 'left';
+            ctx.fillText(msg.text, startX + iconSize + spacing, textY);
+          } else {
+            ctx.fillText(msg.text, canvasWidth / 2, textY);
+          }
+        } else {
+          ctx.fillText(msg.text, canvasWidth / 2, textY);
+        }
+
         ctx.restore();
       }
 
