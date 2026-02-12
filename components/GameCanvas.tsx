@@ -3,8 +3,9 @@ import React, { useEffect, useRef, useImperativeHandle, forwardRef, useCallback,
 import { GameState, Worm, Food, Vector2, Skin, PowerUp, PowerUpType, Pit, Collectible, PlayerWallet, UpgradeLevels } from '../types';
 import { createWorm, createFood, createPowerUp, createPit, createCollectible, updateWormPosition, updateBotAI, checkCollisions } from '../utils/gameEngine';
 import { AnimationEngine } from '../utils/AnimationEngine';
-import { MAP_SIZE, BOT_COUNT, FOOD_COUNT, SKINS, BASE_RADIUS, POWER_UP_CONFIG, MAX_POWER_UPS, POWER_UP_SPAWN_INTERVAL, PIT_CONFIG, DEFAULT_PIT_COUNT, MAX_TOTAL_FOOD, ARENA_CONFIG, FOOD_CONFIG, COIN_CONFIG, DIAMOND_CONFIG, UPGRADE_DURATION_MULTIPLIER } from '../constants';
-import { Vec2, randomPosition } from '../utils/math';
+import { MAP_SIZE, BOT_COUNT, FOOD_COUNT, SKINS, BASE_RADIUS, POWER_UP_CONFIG, MAX_POWER_UPS, POWER_UP_SPAWN_INTERVAL, PIT_CONFIG, DEFAULT_PIT_COUNT, MAX_TOTAL_FOOD, ARENA_CONFIG, FOOD_CONFIG, COIN_CONFIG, DIAMOND_CONFIG, UPGRADE_DURATION_MULTIPLIER, BASE_SPEED, BOOST_SPEED, TURN_SPEED, SEGMENT_DISTANCE, BOT_NAMES, POWER_UP_RADIUS } from '../constants';
+import { Vec2, randomPosition, randomRange } from '../utils/math';
+import { audioController } from '../utils/audio';
 
 interface GameCanvasProps {
   playerName: string;
@@ -202,16 +203,31 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       // Clear pits near spawn
       state.pits = state.pits.filter(p => Vec2.dist(p.position, spawnPos) > 400);
 
-      // Clear bots near spawn
+      // Clear bots near spawn safely
       state.bots.forEach(bot => {
-        if (Vec2.dist(bot.body[0], spawnPos) < 500) {
-          bot.isFrozen = true; // Freeze them briefly
-          // Or move them away
+        if (Vec2.dist(bot.body[0], spawnPos) < 600) {
+          // Instead of freezing (which was permanent!), just move them away
+          // and ensure they stay within arena bounds
           const angle = Math.atan2(bot.body[0].y - spawnPos.y, bot.body[0].x - spawnPos.x);
-          bot.body.forEach((seg, j) => {
-            seg.x += Math.cos(angle) * 1000;
-            seg.y += Math.sin(angle) * 1000;
+          const pushDist = 800;
+
+          bot.body.forEach(seg => {
+            seg.x += Math.cos(angle) * pushDist;
+            seg.y += Math.sin(angle) * pushDist;
+
+            // Constrain to map boundary
+            const mapRadius = MAP_SIZE / 2;
+            const distFromCenter = Math.sqrt((seg.x - mapRadius) ** 2 + (seg.y - mapRadius) ** 2);
+            if (distFromCenter > mapRadius - 100) {
+              const edgeAngle = Math.atan2(seg.y - mapRadius, seg.x - mapRadius);
+              seg.x = mapRadius + Math.cos(edgeAngle) * (mapRadius - 100);
+              seg.y = mapRadius + Math.sin(edgeAngle) * (mapRadius - 100);
+            }
           });
+
+          bot.isFrozen = false; // Force unfreeze if they were frozen during death
+          bot.expression = 'scared';
+          bot.expressionTimer = 1.0;
         }
       });
     }
@@ -289,11 +305,19 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       getEmojiSprite(emoji, 32);
       getEmojiSprite(emoji, 50);
     });
+
+    // Initialize Audio
+    audioController.preload();
   }, [playerName, playerSkin, botNameList, getEmojiSprite, pitCount, enabledPitTypes, foodType]);
 
-  // Mouse Input Handling (Desktop)
+  // Mouse Input Handling (Desktop) - Also triggers audio context
   useEffect(() => {
+    const handleInteraction = () => {
+      audioController.requestMusicStart();
+    };
+
     const handleMouseMove = (e: MouseEvent) => {
+      handleInteraction();
       if (!canvasRef.current || !stateRef.current || isMobileRef.current) return;
       const rect = canvasRef.current.getBoundingClientRect();
       const cx = canvasRef.current.width / 2;
@@ -323,6 +347,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
     if (!canvas) return;
 
     const handleTouchStart = (e: TouchEvent) => {
+      audioController.requestMusicStart(); // Start music on first touch
       e.preventDefault();
       const rect = canvas.getBoundingClientRect();
 
@@ -979,6 +1004,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         if (playerHitWall) {
           state.isGameOver = true;
           state.player.isDead = true;
+          audioController.play('collision');
           onGameOver(state.player.score, (Date.now() - startTimeRef.current) / 1000, 'The Wall', state.player.killCount);
         }
 
@@ -989,6 +1015,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             if (distToPit < pit.radius - state.player.radius * 0.5) {
               state.isGameOver = true;
               state.player.isDead = true;
+              audioController.play('collision');
               const pitConfig = PIT_CONFIG[pit.type];
               onGameOver(state.player.score, (Date.now() - startTimeRef.current) / 1000, pitConfig.name, state.player.killCount);
               break;
@@ -1003,17 +1030,38 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         for (let i = 0; i < state.bots.length; i++) {
           const bot = state.bots[i];
 
+          // 1. Update power-up timers for bots (FIX: was missing)
+          const botPowerUpTypes: (keyof typeof bot.powerUps)[] = ['magnet', 'speed', 'freeze', 'shield'];
+          botPowerUpTypes.forEach(type => {
+            if (bot.powerUps[type] > 0) {
+              bot.powerUps[type] -= deltaTime;
+              if (bot.powerUps[type] <= 0) {
+                bot.powerUps[type] = 0;
+                if (type === 'shield') bot.isInvincible = false;
+              }
+            }
+          });
+
           // Skip frozen bots (from freeze power-up)!
           if (bot.isFrozen) {
-            continue;
+            // Safety: If player doesn't have freeze power-up, bot shouldn't be frozen
+            if (state.player.powerUps.freeze <= 0) {
+              bot.isFrozen = false;
+            } else {
+              continue;
+            }
           }
 
           const distToPlayer = Vec2.dist(playerHead, bot.body[0]);
+          const mapRadius = MAP_SIZE / 2;
+          const distFromCenter = Math.sqrt((bot.body[0].x - mapRadius) ** 2 + (bot.body[0].y - mapRadius) ** 2);
+          const isNearBoundary = distFromCenter > mapRadius - 600; // Increased margin for AI activation
 
-          // Only update AI for bots within range
-          if (distToPlayer < 1200) {
+          // Always update AI if near boundary (FIX: prevents getting stuck)
+          // otherwise use distance-based optimization
+          if (isNearBoundary || distToPlayer < 1200) {
             updateBotAI(bot, state.food, [state.player, ...state.bots], MAP_SIZE);
-          } else if (distToPlayer < 2000 && frameCountRef.current % 3 === 0) {
+          } else if (distToPlayer < 2400 && frameCountRef.current % 3 === 0) {
             // Update distant bots less frequently
             updateBotAI(bot, state.food, [state.player, ...state.bots], MAP_SIZE);
           }
@@ -1060,6 +1108,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           const killerWorm = allWorms.find(w => w.id === killerId);
           if (killerWorm) killerName = killerWorm.name;
           onGameOver(state.player.score, (Date.now() - startTimeRef.current) / 1000, killerName, state.player.killCount);
+          audioController.play('collision');
         }
 
         // Handle bot deaths from collisions
@@ -1121,7 +1170,12 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             state.player.expressionTimer = 0.5;
             state.player.expressionIntensity = 0.8;
 
+            state.player.expressionIntensity = 0.8;
+
             if (f.type !== 'remains') state.food.push(createFood(MAP_SIZE, 'regular', undefined, undefined, foodType));
+
+            // Audio: Play sound for every food item (allow overlap for satisfaction)
+            audioController.play('food', true);
           }
         }
 
@@ -1264,6 +1318,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             }
 
             state.powerUps.splice(i, 1);
+            audioController.play('powerup');
           }
         }
 
@@ -1340,6 +1395,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             }
             onWalletChange(newWallet);
             state.collectibles.splice(i, 1);
+            if (c.type === 'coin') audioController.play('coin');
+            // Can add diamond sound later if needed
           } else if (c.type === 'coin' && Date.now() - c.spawnTime > 15000) {
             // Expire Coin after 15s and Respawn Elsewhere
             state.collectibles.splice(i, 1);

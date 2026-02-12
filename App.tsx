@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { audioController } from './utils/audio';
 import GameCanvas, { GameCanvasHandle } from './components/GameCanvas';
 import MainMenu from './components/MainMenu';
 import GameOverModal from './components/GameOverModal';
@@ -70,6 +71,31 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('neonworms_custom_skins', JSON.stringify(customSkins));
   }, [customSkins]);
+
+  // key: Global Audio Init
+  useEffect(() => {
+    // Preload immediately
+    audioController.preload();
+
+    // Try to start music on any interaction (Capture phase to catch everything)
+    const startMusic = () => {
+      audioController.requestMusicStart();
+      // We keep listening until it succeeds (handled inside controller)
+    };
+
+    // Attempt immediately (Best effort - works if domain already has interaction/allowance)
+    startMusic();
+
+    window.addEventListener('click', startMusic, true);
+    window.addEventListener('touchstart', startMusic, true);
+    window.addEventListener('keydown', startMusic, true);
+
+    return () => {
+      window.removeEventListener('click', startMusic, true);
+      window.removeEventListener('touchstart', startMusic, true);
+      window.removeEventListener('keydown', startMusic, true);
+    };
+  }, []);
 
   const gameRef = useRef<GameCanvasHandle>(null);
 

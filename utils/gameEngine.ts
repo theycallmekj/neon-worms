@@ -190,7 +190,19 @@ export const updateWormPosition = (worm: Worm, mapSize: number, dt: number): boo
   while (diff <= -Math.PI) diff += Math.PI * 2;
   while (diff > Math.PI) diff -= Math.PI * 2;
 
-  const maxTurn = worm.turnSpeed * (60 * dt);
+  let effectiveTurnSpeed = worm.turnSpeed;
+
+  // SUPER-TURN for bots near boundaries to prevent "sliding" along the wall
+  const mapRadius = mapSize / 2;
+  const centerX = mapSize / 2;
+  const centerY = mapSize / 2;
+  const distFromCenterActual = Math.sqrt((worm.body[0].x - centerX) ** 2 + (worm.body[0].y - centerY) ** 2);
+
+  if (worm.isBot && distFromCenterActual > mapRadius - 250) {
+    effectiveTurnSpeed *= 5; // 5x turn speed to snap back instantly
+  }
+
+  const maxTurn = effectiveTurnSpeed * (60 * dt);
   if (Math.abs(diff) > maxTurn) {
     worm.angle += Math.sign(diff) * maxTurn;
   } else {
@@ -207,20 +219,16 @@ export const updateWormPosition = (worm: Worm, mapSize: number, dt: number): boo
   const newHeadX = worm.body[0].x + vx;
   const newHeadY = worm.body[0].y + vy;
 
-  // Check boundary collision (CIRCULAR ARENA)
-  const mapRadius = mapSize / 2;
-  const centerX = mapSize / 2;
-  const centerY = mapSize / 2;
-  const distFromCenter = Math.sqrt((newHeadX - centerX) ** 2 + (newHeadY - centerY) ** 2);
+  const distFromCenterNew = Math.sqrt((newHeadX - centerX) ** 2 + (newHeadY - centerY) ** 2);
   const boundaryMargin = worm.radius + 5;
 
-  const hitBoundary = !worm.isInvincible && (distFromCenter > mapRadius - boundaryMargin);
+  const hitBoundary = !worm.isInvincible && (distFromCenterNew > mapRadius - boundaryMargin);
 
   // Clamp position to stay in bounds (push back into circle)
   let clampedX = newHeadX;
   let clampedY = newHeadY;
 
-  if (distFromCenter > mapRadius - worm.radius) {
+  if (distFromCenterNew > mapRadius - worm.radius) {
     const angle = Math.atan2(newHeadY - centerY, newHeadX - centerX);
     clampedX = centerX + Math.cos(angle) * (mapRadius - worm.radius);
     clampedY = centerY + Math.sin(angle) * (mapRadius - worm.radius);
@@ -276,22 +284,6 @@ export const updateBotAI = (bot: Worm, food: Food[], otherWorms: Worm[], mapSize
 
   const head = bot.body[0];
 
-  // 1. Avoid Walls
-  // 1. Avoid Walls (Circular Map)
-  const mapRadius = mapSize / 2;
-  const centerX = mapSize / 2;
-  const centerY = mapSize / 2;
-  const distFromCenter = Math.sqrt((head.x - centerX) ** 2 + (head.y - centerY) ** 2);
-  const wallMargin = 300;
-
-  if (distFromCenter > mapRadius - wallMargin) {
-    // Steer towards center
-    const angleToCenter = Math.atan2(centerY - head.y, centerX - head.x);
-    // Smoothly blend current direction with center direction
-    // For now, just hard target the center to ensure they turn
-    bot.targetAngle = angleToCenter;
-  }
-
   // 2. Avoid Other Worms
   let avoidanceForce = { x: 0, y: 0 };
   let closeThreats = 0;
@@ -306,7 +298,6 @@ export const updateBotAI = (bot: Worm, food: Food[], otherWorms: Worm[], mapSize
         const d = Vec2.dist(head, seg);
         if (d < bot.radius + other.radius + 80) {
           const diff = Vec2.sub(head, seg);
-          // Avoid division by zero if d is extremely small
           const safeDist = Math.max(d, 1.0);
           avoidanceForce = Vec2.add(avoidanceForce, Vec2.div(Vec2.norm(diff), safeDist));
           closeThreats++;
@@ -322,7 +313,6 @@ export const updateBotAI = (bot: Worm, food: Food[], otherWorms: Worm[], mapSize
     bot.expression = 'scared';
     bot.expressionTimer = 0.5;
     bot.expressionIntensity = Math.min(1, closeThreats * 0.3);
-    return;
   } else {
     bot.isBoosting = false;
   }
@@ -364,6 +354,30 @@ export const updateBotAI = (bot: Worm, food: Food[], otherWorms: Worm[], mapSize
   // Final NaN Safety check for targetAngle
   if (isNaN(bot.targetAngle)) {
     bot.targetAngle = Math.random() * Math.PI * 2;
+  }
+
+  // ============ FINAL PRIORITY: WALL AVOIDANCE ============
+  // This must be last to ensure bots don't suicide for food
+  const mapRadius = mapSize / 2;
+  const centerX = mapSize / 2;
+  const centerY = mapSize / 2;
+  const distFromCenter = Math.sqrt((head.x - centerX) ** 2 + (head.y - centerY) ** 2);
+  const wallMargin = 500; // Increased margin further for ultra-safety
+
+  if (distFromCenter > mapRadius - wallMargin) {
+    const angleToCenter = Math.atan2(centerY - head.y, centerX - head.x);
+
+    // If getting close, override EVERYTHING
+    if (distFromCenter > mapRadius - wallMargin * 0.7) {
+      bot.targetAngle = angleToCenter;
+      bot.isBoosting = true;
+    } else {
+      // Smoothly steer inward
+      let diff = angleToCenter - bot.targetAngle;
+      while (diff <= -Math.PI) diff += Math.PI * 2;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      bot.targetAngle += diff * 0.3; // Gentle nudge inward
+    }
   }
 };
 
