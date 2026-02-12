@@ -486,42 +486,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
       const adjustedRadius = w.radius * (skipFactor > 1 ? 1.2 : 1);
 
-      if (isCompositeSkin && w.skin.composite) {
-        const comp = w.skin.composite;
-        const bodyImg = getSkinImage(comp.body.imageSrc);
-
-        if (bodyImg) {
-          const transform = AnimationEngine.getTransform(comp.body, w, i, totalSegments, animTime);
-          if (isNaN(transform.x) || isNaN(transform.y) || isNaN(transform.rotation) || isNaN(transform.scale) || transform.scale === 0) {
-            transform.x = 0; transform.y = 0; transform.rotation = 0; transform.scale = 1;
-          }
-
-          const nextPos = w.body[Math.max(0, i - 1)];
-          const prevPos = w.body[Math.min(totalSegments - 1, i + 1)];
-          const angle = Math.atan2(nextPos.y - prevPos.y, nextPos.x - prevPos.x);
-
-          ctx.save();
-          ctx.translate(pos.x + transform.x, pos.y + transform.y);
-          ctx.rotate(angle + transform.rotation);
-          ctx.scale(transform.scale, transform.scale);
-
-          // Draw Tail (if it's the last segment)
-          if (i >= totalSegments - 1 - skipFactor) {
-            const tailImg = getSkinImage(comp.tail.imageSrc);
-            if (tailImg) {
-              const tailTrans = AnimationEngine.getTransform(comp.tail, w, i, totalSegments, animTime);
-              ctx.save();
-              ctx.rotate(tailTrans.rotation);
-              ctx.drawImage(tailImg, -adjustedRadius * 1.5, -adjustedRadius, adjustedRadius * 3, adjustedRadius * 2);
-              ctx.restore();
-            }
-          }
-
-          ctx.drawImage(bodyImg, -adjustedRadius, -adjustedRadius, adjustedRadius * 2, adjustedRadius * 2);
-          ctx.restore();
-        }
-
-      } else if (isImageSkin && w.skin.images?.body) {
+      if (isImageSkin && w.skin.images?.body) {
         const bodyImg = getSkinImage(w.skin.images.body);
         if (bodyImg) {
           const nextPos = w.body[Math.max(0, i - 1)];
@@ -545,6 +510,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           ctx.drawImage(bodyImg, -adjustedRadius, -adjustedRadius, adjustedRadius * 2, adjustedRadius * 2);
           ctx.restore();
         } else {
+          // Fallback to color
           const colorIdx = Math.floor(i / 2) % w.skin.colors.length;
           ctx.fillStyle = w.skin.colors[colorIdx];
           ctx.beginPath();
@@ -601,44 +567,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
     // Always draw the head
     const headPos = w.body[0];
 
-    if (isCompositeSkin && w.skin.composite) {
-      const comp = w.skin.composite;
-      const headBaseImg = getSkinImage(comp.headBase);
-
-      if (headBaseImg) {
-        ctx.save();
-        ctx.translate(headPos.x, headPos.y);
-        ctx.rotate(w.angle);
-        const headSize = w.radius * 2.5;
-
-        // 1. Draw Head Base
-        ctx.drawImage(headBaseImg, -headSize / 2, -headSize / 2, headSize, headSize);
-
-        // 2. Determine Face State
-        const faceState = AnimationEngine.getFaceState(w, animTime);
-
-        // 3. Draw Eyes
-        if (comp.eyes) {
-          let eyesUrl = comp.eyes.imageSrc;
-          if (faceState.eyes === 'closed') eyesUrl = eyesUrl.replace('open', 'closed');
-
-          const eyesImg = getSkinImage(eyesUrl);
-          if (eyesImg) ctx.drawImage(eyesImg, -headSize / 2, -headSize / 2, headSize, headSize);
-        }
-
-        // 4. Draw Mouth
-        if (comp.mouth) {
-          let mouthUrl = comp.mouth.imageSrc;
-          if (faceState.mouth === 'open') mouthUrl = mouthUrl.replace('idle', 'open');
-
-          const mouthImg = getSkinImage(mouthUrl);
-          if (mouthImg) ctx.drawImage(mouthImg, -headSize / 2, -headSize / 2, headSize, headSize);
-        }
-
-        ctx.restore();
-      }
-
-    } else if (isImageSkin && w.skin.images?.head) {
+    if (isImageSkin) {
       const headImg = getSkinImage(w.skin.images.head);
       if (headImg) {
         ctx.save();

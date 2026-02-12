@@ -15,21 +15,8 @@ const WormPreview: React.FC<WormPreviewProps> = ({ skin, className }) => {
     const imagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
 
     useEffect(() => {
-        // Preload composite skin images if needed
-        if (skin.type === 'composite' && skin.composite) {
-            const load = (src: string) => {
-                if (!imagesRef.current.has(src)) {
-                    const img = new Image();
-                    img.src = src;
-                    imagesRef.current.set(src, img);
-                }
-            };
-            if (skin.composite.headBase) load(skin.composite.headBase);
-            if (skin.composite.eyes?.imageSrc) load(skin.composite.eyes.imageSrc);
-            if (skin.composite.mouth?.imageSrc) load(skin.composite.mouth.imageSrc);
-            if (skin.composite.body?.imageSrc) load(skin.composite.body.imageSrc);
-            if (skin.composite.tail?.imageSrc) load(skin.composite.tail.imageSrc);
-        }
+        // Obsolete: Preload composite skin images if needed
+        // (Composite skins have been removed from the standard set)
     }, [skin]);
 
     useEffect(() => {
@@ -75,121 +62,45 @@ const WormPreview: React.FC<WormPreviewProps> = ({ skin, className }) => {
                 ctx.save();
                 ctx.translate(segX, segY);
 
-                // --- Drawing Logic based on Skin Type ---
-                if (skin.type === 'composite' && skin.composite) {
-                    // Composite Skin Body
-                    if (i === 0) {
-                        // HEAD
-                        const headSize = radius * 2.4;
+                // --- Standard Neon Rendering ---
+                const colorIndex = i % skin.colors.length;
+                ctx.fillStyle = skin.colors[colorIndex];
 
-                        // Head Base
-                        const headImg = imagesRef.current.get(skin.composite.headBase || '');
-                        if (headImg && headImg.complete) {
-                            ctx.drawImage(headImg, -headSize / 2, -headSize / 2, headSize, headSize);
-                        } else {
-                            // Fallback head
-                            ctx.fillStyle = skin.headColor || skin.colors[0];
-                            ctx.beginPath();
-                            ctx.arc(0, 0, radius * 1.2, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
+                if (i === 0) {
+                    // Head
+                    ctx.fillStyle = skin.headColor || skin.colors[0];
+                    ctx.beginPath();
+                    ctx.arc(0, 0, radius * 1.1, 0, Math.PI * 2);
+                    ctx.fill();
 
-                        // Face Animation (Wiggle rotation)
-                        const faceRot = Math.sin(time * 5) * 0.1;
-                        ctx.rotate(faceRot);
+                    // Face (Eyes/Mouth)
+                    ctx.fillStyle = 'white';
+                    // Left Eye
+                    ctx.beginPath(); ctx.arc(-8, -5, 5, 0, Math.PI * 2); ctx.fill();
+                    // Right Eye
+                    ctx.beginPath(); ctx.arc(8, -5, 5, 0, Math.PI * 2); ctx.fill();
+                    // Pupils
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-8 + Math.sin(time) * 2, -5, 2.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(8 + Math.sin(time) * 2, -5, 2.5, 0, Math.PI * 2); ctx.fill();
 
-                        // Eyes
-                        if (skin.composite.eyes?.imageSrc) {
-                            const eyesImg = imagesRef.current.get(skin.composite.eyes.imageSrc);
-                            if (eyesImg && eyesImg.complete) {
-                                ctx.drawImage(eyesImg, -headSize / 2, -headSize / 2, headSize, headSize);
-                            }
-                        }
-
-                        // Mouth (Wiggle/Talk)
-                        if (skin.composite.mouth?.imageSrc) {
-                            const mouthImg = imagesRef.current.get(skin.composite.mouth.imageSrc);
-                            if (mouthImg && mouthImg.complete) {
-                                // Mouth render logic (maybe scale/open-close)
-                                const mouthOpen = 1 + Math.sin(time * 8) * 0.1;
-                                ctx.save();
-                                ctx.scale(1, mouthOpen);
-                                ctx.drawImage(mouthImg, -headSize / 2, -headSize / 2, headSize, headSize);
-                                ctx.restore();
-                            }
-                        }
-
-                    } else if (i === segmentCount - 1) {
-                        // TAIL
-                        const tailImg = imagesRef.current.get(skin.composite.tail?.imageSrc || '');
-                        if (tailImg && tailImg.complete) {
-                            const tailSize = radius * 2.5;
-                            ctx.rotate(Math.sin(time * 5) * 0.2); // Tail wag
-                            ctx.drawImage(tailImg, -tailSize / 2, -tailSize / 2, tailSize, tailSize);
-                        } else {
-                            // Fallback tail
-                            ctx.fillStyle = skin.colors[skin.colors.length - 1];
-                            ctx.beginPath();
-                            ctx.arc(0, 0, radius * 0.8, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-                    } else {
-                        // BODY SEGMENT
-                        const bodyImg = imagesRef.current.get(skin.composite.body?.imageSrc || '');
-                        if (bodyImg && bodyImg.complete) {
-                            const bodySize = radius * 2.2;
-                            ctx.drawImage(bodyImg, -bodySize / 2, -bodySize / 2, bodySize, bodySize);
-                        } else {
-                            // Fallback body
-                            const colorIndex = i % skin.colors.length;
-                            ctx.fillStyle = skin.colors[colorIndex];
-                            ctx.beginPath();
-                            ctx.arc(0, 0, radius, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-                    }
+                    // Mouth
+                    ctx.fillStyle = 'white'; // Smile
+                    ctx.beginPath();
+                    ctx.arc(0, 5, 6, 0.1, Math.PI - 0.1);
+                    ctx.fill();
 
                 } else {
-                    // Standard Skin Logic
-                    const colorIndex = i % skin.colors.length;
-                    ctx.fillStyle = skin.colors[colorIndex];
+                    // Body
+                    ctx.beginPath();
+                    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                    ctx.fill();
 
-                    if (i === 0) {
-                        // Head
-                        ctx.fillStyle = skin.headColor || skin.colors[0];
-                        ctx.beginPath();
-                        ctx.arc(0, 0, radius * 1.1, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        // Face (Eyes/Mouth)
-                        ctx.fillStyle = 'white';
-                        // Left Eye
-                        ctx.beginPath(); ctx.arc(-8, -5, 5, 0, Math.PI * 2); ctx.fill();
-                        // Right Eye
-                        ctx.beginPath(); ctx.arc(8, -5, 5, 0, Math.PI * 2); ctx.fill();
-                        // Pupils
-                        ctx.fillStyle = 'black';
-                        ctx.beginPath(); ctx.arc(-8 + Math.sin(time) * 2, -5, 2.5, 0, Math.PI * 2); ctx.fill();
-                        ctx.beginPath(); ctx.arc(8 + Math.sin(time) * 2, -5, 2.5, 0, Math.PI * 2); ctx.fill();
-
-                        // Mouth
-                        ctx.fillStyle = 'white'; // Smile
-                        ctx.beginPath();
-                        ctx.arc(0, 5, 6, 0.1, Math.PI - 0.1);
-                        ctx.fill();
-
-                    } else {
-                        // Body
-                        ctx.beginPath();
-                        ctx.arc(0, 0, radius, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        // Shadow/Highlight for 3D effect
-                        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-                        ctx.beginPath();
-                        ctx.arc(-4, -4, radius * 0.5, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
+                    // Shadow/Highlight for 3D effect
+                    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                    ctx.beginPath();
+                    ctx.arc(-4, -4, radius * 0.5, 0, Math.PI * 2);
+                    ctx.fill();
                 }
 
                 ctx.restore();

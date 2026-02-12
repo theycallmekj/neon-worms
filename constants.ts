@@ -100,93 +100,6 @@ export const FOOD_CONFIG = {
 };
 
 export const SKINS: Skin[] = [
-  // Animal Skins (Composite & Animated)
-  {
-    id: 'panda',
-    name: 'Panda',
-    type: 'composite',
-    colors: ['#ffffff', '#000000'],
-    headColor: '#ffffff',
-    composite: {
-      headBase: '/skins/panda_face_base.svg',
-      eyes: { imageSrc: '/skins/panda_eyes_open.svg', animation: 'none' },
-      mouth: { imageSrc: '/skins/panda_mouth_idle.svg', animation: 'none' },
-      body: { imageSrc: '/skins/panda_body_mod.svg', animation: 'sine-wave', params: { speed: 1.5, intensity: 0.1 } },
-      tail: { imageSrc: '/skins/panda_tail.svg', animation: 'tail-whip', params: { speed: 2, intensity: 0.3 } }
-    }
-  },
-  {
-    id: 'fox',
-    name: 'Fox',
-    type: 'composite',
-    colors: ['#ff8c00', '#ffffff'],
-    headColor: '#ff8c00',
-    composite: {
-      headBase: '/skins/fox_face_base.svg',
-      eyes: { imageSrc: '/skins/fox_eyes_open.svg', animation: 'none' },
-      mouth: { imageSrc: '/skins/fox_mouth_idle.svg', animation: 'none' },
-      body: { imageSrc: '/skins/fox_body_mod.svg', animation: 'sine-wave', params: { speed: 2, intensity: 0.1 } },
-      tail: { imageSrc: '/skins/fox_tail.svg', animation: 'tail-whip', params: { speed: 2.5, intensity: 0.4 } }
-    }
-  },
-  {
-    id: 'unicorn',
-    name: 'Unicorn',
-    type: 'composite',
-    colors: ['#ffffff', '#ff69b4'],
-    headColor: '#ffffff',
-    composite: {
-      headBase: '/skins/unicorn_face_base.svg',
-      eyes: { imageSrc: '/skins/unicorn_eyes_open.svg', animation: 'none' },
-      mouth: { imageSrc: '/skins/unicorn_mouth_idle.svg', animation: 'none' },
-      body: { imageSrc: '/skins/unicorn_body_mod.svg', animation: 'pulse', params: { speed: 3, intensity: 0.05 } },
-      tail: { imageSrc: '/skins/unicorn_tail.svg', animation: 'sine-wave', params: { speed: 2, intensity: 0.2 } }
-    }
-  },
-  {
-    id: 'lion',
-    name: 'Lion',
-    type: 'composite',
-    colors: ['#f4a460', '#8b4513'],
-    headColor: '#f4a460',
-    composite: {
-      headBase: '/skins/lion_face_base.svg',
-      eyes: { imageSrc: '/skins/lion_eyes_open.svg', animation: 'none' },
-      mouth: { imageSrc: '/skins/lion_mouth_idle.svg', animation: 'none' },
-      body: { imageSrc: '/skins/lion_body_mod.svg', animation: 'stretch', params: { speed: 1, intensity: 0.05 } },
-      tail: { imageSrc: '/skins/lion_tail.svg', animation: 'tail-whip', params: { speed: 1.5, intensity: 0.3 } }
-    }
-  },
-  {
-    id: 'orangutan',
-    name: 'Orangutan',
-    type: 'composite',
-    colors: ['#d2691e', '#8b4500'],
-    headColor: '#d2691e',
-    composite: {
-      headBase: '/skins/orangutan_face_base.svg',
-      eyes: { imageSrc: '/skins/orangutan_eyes_open.svg', animation: 'none' },
-      mouth: { imageSrc: '/skins/orangutan_mouth_idle.svg', animation: 'none' },
-      body: { imageSrc: '/skins/orangutan_body_mod.svg', animation: 'jitters', params: { speed: 5, intensity: 0.02 } },
-      tail: { imageSrc: '/skins/orangutan_tail.svg', animation: 'sine-wave', params: { speed: 2, intensity: 0.2 } }
-    }
-  },
-  {
-    id: 'cow',
-    name: 'Cow',
-    type: 'composite',
-    colors: ['#ffffff', '#000000'],
-    headColor: '#ffffff',
-    composite: {
-      headBase: '/skins/cow_face_base.svg',
-      eyes: { imageSrc: '/skins/cow_eyes_open.svg', animation: 'none' },
-      mouth: { imageSrc: '/skins/cow_mouth_idle.svg', animation: 'none' },
-      body: { imageSrc: '/skins/cow_body_mod.svg', animation: 'sine-wave', params: { speed: 1, intensity: 0.1 } },
-      tail: { imageSrc: '/skins/cow_tail.svg', animation: 'tail-whip', params: { speed: 2, intensity: 0.3 } }
-    }
-  },
-
-  // Standard Skins
   { id: 'neon-pulse', name: 'Neon Pulse', colors: ['#000000', '#00ff00', '#000000', '#ff00ff'], headColor: '#ffffff', pattern: 'electric' },
   { id: 'rainbow-drift', name: 'Rainbow Drift', colors: ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'], headColor: '#ffffff', pattern: 'gradient' },
   { id: 'cyber-grid', name: 'Cyber Grid', colors: ['#001133', '#003366'], headColor: '#00ffff', pattern: 'grid' },
@@ -211,11 +124,11 @@ export const SKINS: Skin[] = [
   { id: 'volcano-ridge', name: 'Volcano Ridge', colors: ['#212121', '#1a1a1a'], headColor: '#ff5722', pattern: 'cracks' },
   { id: 'mystic-runes', name: 'Mystic Runes', colors: ['#311b92', '#4527a0'], headColor: '#d1c4e9', pattern: 'runes' },
   { id: 'ocean-wave', name: 'Ocean Wave', colors: ['#0288d1', '#03a9f4', '#e1f5fe'], headColor: '#ffffff', pattern: 'stripes' },
-  { id: 'electric-honeycomb', name: 'Electric Honey', colors: ['#ff6f00', '#ffca28'], headColor: '#ffffff', pattern: 'grid' },
+  { id: 'electric-honeycomb', name: 'Electric Honeycomb', colors: ['#ff6f00', '#ffca28'], headColor: '#ffffff', pattern: 'grid' },
   { id: 'marble-luxe', name: 'Marble Luxe', colors: ['#f5f5f5', '#eeeeee'], headColor: '#ffffff', pattern: 'cracks' },
-  { id: 'dragonflame', name: 'Dragonflame', colors: ['#d32f2f', '#fbc02d'], headColor: '#ff5722', pattern: 'gradient' },
+  { id: 'dragonflame', name: 'Dragon Flame', colors: ['#d32f2f', '#fbc02d'], headColor: '#ff5722', pattern: 'gradient' },
   { id: 'starlight-candy', name: 'Starlight Candy', colors: ['#f8bbd0', '#e1bee7', '#b2dfdb'], headColor: '#ffffff', pattern: 'stars' },
-  { id: 'robot-armor', name: 'Robot Armor', colors: ['#90a4ae', '#607d8b'], headColor: '#cfd8dc', pattern: 'plates' },
+  { id: 'robot-armor', name: 'Mecha Armor', colors: ['#90a4ae', '#607d8b'], headColor: '#cfd8dc', pattern: 'plates' },
   { id: 'ancient-moss', name: 'Ancient Moss', colors: ['#424242', '#616161'], headColor: '#7cb342', pattern: 'spots' },
 ];
 
