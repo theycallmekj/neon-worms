@@ -5,6 +5,7 @@ import GameCanvas, { GameCanvasHandle } from './components/GameCanvas';
 import MainMenu from './components/MainMenu';
 import GameOverModal from './components/GameOverModal';
 import SettingsModal from './components/SettingsModal';
+import { adManager } from './utils/ads';
 import UpgradesModal from './components/UpgradesModal';
 import ReviveModal from './components/ReviveModal';
 import ShopModal from './components/ShopModal';
@@ -74,8 +75,11 @@ const App: React.FC = () => {
     localStorage.setItem('neonworms_custom_skins', JSON.stringify(customSkins));
   }, [customSkins]);
 
-  // key: Global Audio Init
+  // key: Global Ad & Audio Init
   useEffect(() => {
+    // AdMob Init
+    adManager.initialize();
+
     // Preload immediately
     audioController.preload();
 
@@ -112,6 +116,7 @@ const App: React.FC = () => {
 
   const handleGameOver = (score: number, time: number, killedBy: string, killCount: number) => {
     setLastGameStats({ score, time, killedBy, killCount });
+    adManager.showInterstitial();
     setIsReviveVisible(true); // Show Revive Modal first
   };
 
@@ -127,10 +132,12 @@ const App: React.FC = () => {
     }
   };
 
-  const handleReviveWithAd = () => {
-    // Ad revive is visual for now but functionally same as diamond for testing
-    setIsReviveVisible(false);
-    gameRef.current?.revive();
+  const handleReviveWithAd = async () => {
+    const success = await adManager.showRewarded();
+    if (success) {
+      setIsReviveVisible(false);
+      gameRef.current?.revive();
+    }
   };
 
   const handleSkipRevive = () => {
@@ -139,6 +146,7 @@ const App: React.FC = () => {
   };
 
   const handleRestart = () => {
+    adManager.showInterstitial();
     setIsGameOverVisible(false);
     setReviveCost(5); // Reset revive cost
     // We can either re-mount or just signal reset
@@ -147,6 +155,7 @@ const App: React.FC = () => {
   };
 
   const handleHome = () => {
+    adManager.showInterstitial();
     setIsGameOverVisible(false);
     setAppState('MENU');
   };
@@ -200,16 +209,22 @@ const App: React.FC = () => {
     setUpgradeLevels(newUpgrades);
   };
 
-  const handleWatchAdGold = () => {
-    setWallet(prev => ({ ...prev, coins: prev.coins + 50 }));
-    setIsShopOpen(false);
-    audioController.play('coin', true);
+  const handleWatchAdGold = async () => {
+    const success = await adManager.showRewarded();
+    if (success) {
+      setWallet(prev => ({ ...prev, coins: prev.coins + 50 }));
+      setIsShopOpen(false);
+      audioController.play('coin', true);
+    }
   };
 
-  const handleWatchAdDiamond = () => {
-    setWallet(prev => ({ ...prev, diamonds: prev.diamonds + 2 }));
-    setIsShopOpen(false);
-    audioController.play('coin', true);
+  const handleWatchAdDiamond = async () => {
+    const success = await adManager.showRewarded();
+    if (success) {
+      setWallet(prev => ({ ...prev, diamonds: prev.diamonds + 2 }));
+      setIsShopOpen(false);
+      audioController.play('coin', true);
+    }
   };
 
   return (

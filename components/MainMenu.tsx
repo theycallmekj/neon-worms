@@ -3,6 +3,7 @@ import { SKINS } from '../constants';
 import { GameSettings, PlayerWallet, Skin } from '../types';
 import WardrobeModal from './WardrobeModal';
 import SettingsModal from './SettingsModal';
+import { adManager } from '../utils/ads';
 
 interface MainMenuProps {
   onStart: (name: string, skin: Skin) => void;
@@ -641,7 +642,10 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
       {/* Settings - Bottom Left */}
       <div className={`absolute bottom-6 left-6 z-20 transition-all duration-700 delay-300 transform ${menuReady ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-        <button onClick={() => setShowSettings(true)} className="flex flex-col items-center gap-1 group active:scale-95 hover:-translate-y-1 transition-transform">
+        <button onClick={() => {
+          adManager.showInterstitial();
+          setShowSettings(true);
+        }} className="flex flex-col items-center gap-1 group active:scale-95 hover:-translate-y-1 transition-transform">
           <div className="w-14 h-14 flex items-center justify-center filter drop-shadow-md text-white bg-black/40 rounded-2xl border border-white/10 hover:bg-black/60 transition-colors backdrop-blur-md shadow-lg">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           </div>
@@ -652,7 +656,10 @@ const MainMenu: React.FC<MainMenuProps> = ({
       {/* Upgrades - Bottom Right */}
       {onOpenUpgrades && (
         <div className={`absolute bottom-6 right-6 z-20 transition-all duration-700 delay-300 transform ${menuReady ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-          <button onClick={onOpenUpgrades} className="flex flex-col items-center gap-1 group active:scale-95 hover:-translate-y-1 transition-transform">
+          <button onClick={() => {
+            adManager.showInterstitial();
+            onOpenUpgrades();
+          }} className="flex flex-col items-center gap-1 group active:scale-95 hover:-translate-y-1 transition-transform">
             <div className="w-14 h-14 flex items-center justify-center filter drop-shadow-md text-white bg-black/40 rounded-2xl border border-white/10 hover:bg-black/60 transition-colors backdrop-blur-md shadow-lg">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             </div>

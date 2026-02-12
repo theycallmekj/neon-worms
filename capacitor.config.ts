@@ -32,8 +32,10 @@ const config: CapacitorConfig = {
       style: 'DARK',
       backgroundColor: '#0f172a',
       overlaysWebView: true,
-
     },
+    AdMob: {
+      initializeOnBlur: true,
+    }
   },
 
   // Server settings
