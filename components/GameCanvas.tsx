@@ -137,11 +137,19 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
   useEffect(() => {
     const cache = foodSpritesRef.current;
     const allSprites = new Set<string>();
+
+    // Check both FOOD_CONFIG and any other collections that might have sprites
     Object.values(FOOD_CONFIG).forEach(config => {
-      config.items.forEach(item => {
-        allSprites.add(item.sprite);
+      config.items.forEach((item: any) => {
+        if (item.sprite) allSprites.add(item.sprite);
       });
     });
+
+    if (allSprites.size === 0) {
+      setSpritesReady(true);
+      return;
+    }
+
     let loaded = 0;
     const total = allSprites.size;
     allSprites.forEach(spritePath => {
@@ -149,6 +157,10 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       img.src = spritePath;
       img.onload = () => {
         cache.set(spritePath, img);
+        loaded++;
+        if (loaded >= total) setSpritesReady(true);
+      };
+      img.onerror = () => {
         loaded++;
         if (loaded >= total) setSpritesReady(true);
       };
@@ -404,13 +416,13 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
   // Render loop moved to useEffect below
 
   // Optimized worm drawing function
-  const drawWormOptimized = useCallback((ctx: CanvasRenderingContext2D, w: Worm, camera: Vector2, canvasWidth: number, canvasHeight: number, animTime: number) => {
+  const drawWormOptimized = useCallback((ctx: CanvasRenderingContext2D, w: Worm, camera: Vector2, worldWidth: number, worldHeight: number, animTime: number) => {
     if (w.isDead && w.id !== 'player') return;
 
     const head = w.body[0];
-    // Quick bounds check - skip if worm head is far off screen
-    if (head.x < camera.x - 300 || head.x > camera.x + canvasWidth + 300 ||
-      head.y < camera.y - 300 || head.y > camera.y + canvasHeight + 300) return;
+    // Quick bounds check - skip if worm head is far off screen (using world dimensions)
+    if (head.x < camera.x - 300 || head.x > camera.x + worldWidth + 300 ||
+      head.y < camera.y - 300 || head.y > camera.y + worldHeight + 300) return;
 
     ctx.save();
     if (w.isInvincible) {
@@ -431,8 +443,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       const pos = w.body[i];
       // Skip segments outside viewport or with invalid coordinates
       if (!pos || isNaN(pos.x) || isNaN(pos.y) ||
-        pos.x < camera.x - 50 || pos.x > camera.x + canvasWidth + 50 ||
-        pos.y < camera.y - 50 || pos.y > camera.y + canvasHeight + 50) continue;
+        pos.x < camera.x - 100 || pos.x > camera.x + worldWidth + 100 ||
+        pos.y < camera.y - 100 || pos.y > camera.y + worldHeight + 100) continue;
 
       const adjustedRadius = w.radius * (skipFactor > 1 ? 1.2 : 1);
 
@@ -1303,27 +1315,37 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
       const canvasWidth = canvas.width / dpr;
       const canvasHeight = canvas.height / dpr;
 
-      // Smooth camera follow
-      const targetCamX = state.player.body[0].x - canvasWidth / 2;
-      const targetCamY = state.player.body[0].y - canvasHeight / 2;
+      // Define Zoom factor (More zoomed out on mobile for better visibility)
+      const zoom = isMobileRef.current ? 0.6 : 0.8;
+
+      // Calculate viewport dimensions in world-space
+      const worldViewWidth = canvasWidth / zoom;
+      const worldViewHeight = canvasHeight / zoom;
+
+      // Smooth camera follow (Centered on player head)
+      const targetCamX = state.player.body[0].x - worldViewWidth / 2;
+      const targetCamY = state.player.body[0].y - worldViewHeight / 2;
       state.camera.x += (targetCamX - state.camera.x) * 0.08;
       state.camera.y += (targetCamY - state.camera.y) * 0.08;
 
-      // Clear canvas
-      // --- Drawing Helpers ---
+      // Clear canvas (Solid Background)
+      const arenaConfig = ARENA_CONFIG[arenaId] || ARENA_CONFIG['dark'];
+      ctx.fillStyle = arenaConfig.colors.background;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      drawGrid(ctx, canvasWidth, canvasHeight, state.camera, arenaId);
-
-      // --- World Space Rendering ---
-      // Apply camera transform So that all entities (Pits, Food, Worms) are drawn relative to the camera
+      // --- World Space Rendering (Apply Zoom & Camera) ---
       ctx.save();
+      ctx.scale(zoom, zoom);
       ctx.translate(-state.camera.x, -state.camera.y);
+
+      // 1. Draw Map Boundary & Grid (Inside Scaled Space)
+      drawWorldGrid(ctx, state.camera, worldViewWidth, worldViewHeight, arenaId);
 
       // Draw Pits (Hazard Zones) with animated effects
       state.pits.forEach(pit => {
-        // Check if visible
-        if (pit.position.x < state.camera.x - pit.radius - 50 || pit.position.x > state.camera.x + canvasWidth + pit.radius + 50 ||
-          pit.position.y < state.camera.y - pit.radius - 50 || pit.position.y > state.camera.y + canvasHeight + pit.radius + 50) return;
+        // Check if visible (using world dimensions)
+        if (pit.position.x < state.camera.x - pit.radius - 50 || pit.position.x > state.camera.x + worldViewWidth + pit.radius + 50 ||
+          pit.position.y < state.camera.y - pit.radius - 50 || pit.position.y > state.camera.y + worldViewHeight + pit.radius + 50) return;
 
         const config = PIT_CONFIG[pit.type];
         const pulse = Math.sin(animTime * 3) * 0.15 + 0.85;
@@ -1431,12 +1453,12 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
 
       // Food (optimized with cached sprites and frustum culling)
-      const viewMargin = 60;
+      const viewMargin = 100;
       const visibleFood = state.food.filter(f =>
         f.position.x >= state.camera.x - viewMargin &&
-        f.position.x <= state.camera.x + canvasWidth + viewMargin &&
+        f.position.x <= state.camera.x + worldViewWidth + viewMargin &&
         f.position.y >= state.camera.y - viewMargin &&
-        f.position.y <= state.camera.y + canvasHeight + viewMargin
+        f.position.y <= state.camera.y + worldViewHeight + viewMargin
       );
 
       // Super fast food rendering with visual improvements
@@ -1471,7 +1493,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
         if (spriteImg && spriteImg.complete && spriteImg.width > 0) {
           // Individual Sprite Drawing with gentle rotation
-          const drawSize = renderRadius * 2.8;
+          const drawSize = renderRadius * 3.5; // Increased from 2.8 for better visibility
           const rot = Math.sin(animTime * 1.5 + f.position.x * 0.1) * 0.1; // gentle wobble
           ctx.save();
           ctx.translate(f.position.x, drawY);
@@ -1482,27 +1504,27 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           // Fallback Logic (Emoji or Circle)
           if (f.emoji) {
             try {
-              const baseSize = Math.round(f.radius * 2);
+              const baseSize = Math.round(f.radius * 2.5); // Increased
               const sprite = getEmojiSprite(f.emoji, baseSize);
-              const drawSize = renderRadius * 2;
-              ctx.drawImage(sprite, f.position.x - renderRadius, f.position.y - renderRadius, drawSize, drawSize);
+              const drawSize = renderRadius * 2.5; // Increased
+              ctx.drawImage(sprite, f.position.x - renderRadius * 1.25, f.position.y - renderRadius * 1.25, drawSize, drawSize);
             } catch {
-              ctx.font = `${renderRadius * 2}px serif`;
+              ctx.font = `${renderRadius * 2.5}px serif`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillText(f.emoji, f.position.x, f.position.y);
             }
           } else {
             // Simple Colored Circle (for new food while loading)
-            ctx.fillStyle = f.color || f.value > 10 ? '#ffaa00' : '#4ade80';
+            ctx.fillStyle = f.color || (f.value > 10 ? '#ffaa00' : '#4ade80');
             ctx.beginPath();
-            ctx.arc(f.position.x, f.position.y, renderRadius, 0, Math.PI * 2);
+            ctx.arc(f.position.x, f.position.y, renderRadius * 1.3, 0, Math.PI * 2); // Increased radius
             ctx.fill();
 
             // Inner dot for style
             ctx.fillStyle = 'white';
             ctx.beginPath();
-            ctx.arc(f.position.x - renderRadius * 0.3, f.position.y - renderRadius * 0.3, renderRadius * 0.3, 0, Math.PI * 2);
+            ctx.arc(f.position.x - renderRadius * 0.4, f.position.y - renderRadius * 0.4, renderRadius * 0.4, 0, Math.PI * 2);
             ctx.fill();
           }
         }
@@ -1668,7 +1690,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           ctx.fillText('❄️', bot.body[0].x, bot.body[0].y - bot.radius * 2);
           ctx.restore();
         }
-        drawWormOptimized(ctx, bot, state.camera, canvasWidth, canvasHeight, animTime);
+        drawWormOptimized(ctx, bot, state.camera, worldViewWidth, worldViewHeight, animTime);
       });
 
       // Draw player with power-up effects
@@ -1700,12 +1722,14 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.restore();
       }
 
-      drawWormOptimized(ctx, state.player, state.camera, canvasWidth, canvasHeight, animTime);
+      drawWormOptimized(ctx, state.player, state.camera, worldViewWidth, worldViewHeight, animTime);
 
       ctx.restore();
 
-      // ==================== HUD DRAWING ====================
-      const padding = isMobileRef.current ? 50 : 25; // Increased mobile padding for safe area (notch/corners)
+      // ==================== HUD DRAWING (World Scale Reset) ====================
+      ctx.restore(); // Exit World Space Scaling
+
+      const padding = isMobileRef.current ? 30 : 25;
 
       // Helper to draw glass panel
       const drawGlassPanel = (x: number, y: number, w: number, h: number, radius: number = 12) => {
@@ -1714,8 +1738,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(x, y, w, h, radius);
+        if ((ctx as any).roundRect) {
+          (ctx as any).roundRect(x, y, w, h, radius);
         } else {
           ctx.rect(x, y, w, h);
         }
@@ -1725,271 +1749,196 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         // Gloss highlight
         ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
         ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(x + 1, y + 1, w - 2, h / 2, [radius, radius, 0, 0]);
+        if ((ctx as any).roundRect) {
+          (ctx as any).roundRect(x + 1, y + 1, w - 2, h / 2, [radius, radius, 0, 0]);
         }
         ctx.fill();
         ctx.restore();
       };
 
-      // --- 1. TOP LEFT: STATS (Score, Wallet, Length) ---
-      const statsW = isMobileRef.current ? 160 : 200;
-      const statsH = isMobileRef.current ? 75 : 90;
+      // --- 1. HUD LAYOUT REARRANGEMENT ---
 
-      drawGlassPanel(padding, padding, statsW, statsH);
-
-      // Score
-      ctx.save();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = `900 ${isMobileRef.current ? '18px' : '22px'} Orbitron`;
-      ctx.textAlign = 'left';
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.shadowBlur = 4;
-      ctx.fillText(`${Math.floor(state.player.score)}`, padding + 15, padding + (isMobileRef.current ? 25 : 30));
-
-      ctx.font = `bold ${isMobileRef.current ? '10px' : '11px'} Rajdhani`;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.fillText('SCORE', padding + 15, padding + (isMobileRef.current ? 10 : 12));
-
-      // Wallet (Coins / Diamonds)
-      const currencyY = padding + (isMobileRef.current ? 48 : 56);
-      ctx.font = `700 ${isMobileRef.current ? '13px' : '15px'} Orbitron`;
-
-      ctx.fillStyle = '#ffd700'; // Gold
-      ctx.fillText(`🪙 ${walletRef.current.coins}`, padding + 15, currencyY);
-
-      const coinsWidth = ctx.measureText(`🪙 ${walletRef.current.coins}`).width;
-      ctx.fillStyle = '#4fc3f7'; // Diamond
-      ctx.fillText(`💎 ${walletRef.current.diamonds}`, padding + 15 + coinsWidth + 15, currencyY);
-
-      // Length (Bottom right of panel)
-      ctx.textAlign = 'right';
-      ctx.font = `600 ${isMobileRef.current ? '11px' : '13px'} Rajdhani`;
-      ctx.fillStyle = 'rgba(255,255,255,0.4)';
-      ctx.fillText(`LEN: ${state.player.body.length}`, padding + statsW - 10, padding + statsH - 8);
-      ctx.restore();
-
-
-      // --- 2. LEFT SIDE: ACTIVE POWER-UPS ---
-      let powerUpY = padding + statsH + 15;
-      const barWidth = isMobileRef.current ? 110 : 140;
-      const barHeight = isMobileRef.current ? 20 : 24;
-      const powerUpTypesList: (keyof typeof state.player.powerUps)[] = ['magnet', 'speed', 'freeze', 'shield'];
-
-      powerUpTypesList.forEach(type => {
-        if (state.player.powerUps[type] > 0) {
-          const config = POWER_UP_CONFIG[type];
-          const timeLeft = state.player.powerUps[type];
-          const maxTime = config.maxDuration;
-          const fillRatio = Math.max(0, timeLeft / maxTime);
-
-          const barX = padding;
-
-          // Glass Bar Background
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-          ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.roundRect(barX, powerUpY, barWidth, barHeight, 6);
-          ctx.fill();
-          ctx.stroke();
-
-          // Fill Bar (Glowing)
-          if (fillRatio > 0) {
-            ctx.save();
-            const gradient = ctx.createLinearGradient(barX, powerUpY, barX + barWidth * fillRatio, powerUpY);
-            gradient.addColorStop(0, config.color);
-            gradient.addColorStop(1, config.glowColor);
-
-            ctx.fillStyle = gradient;
-            ctx.shadowColor = config.color;
-            ctx.shadowBlur = 10;
-            ctx.beginPath();
-            ctx.roundRect(barX + 1, powerUpY + 1, (barWidth - 2) * fillRatio, barHeight - 2, 4);
-            ctx.fill();
-            ctx.restore();
-          }
-
-          // Icon & Time
-          const sprite = powerUpSpritesRef.current.get(config.sprite);
-
-          if (sprite && sprite.complete) {
-            // Draw Sprite Icon
-            const iconSize = barHeight * 0.8;
-            ctx.drawImage(sprite, barX + 6, powerUpY + (barHeight - iconSize) / 2, iconSize, iconSize);
-          } else {
-            // Fallback Emoji
-            ctx.save();
-            ctx.fillStyle = 'white';
-            ctx.font = `${isMobileRef.current ? '14px' : '16px'} serif`; // Emoji font
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'black';
-            ctx.shadowBlur = 4;
-            ctx.fillText(config.emoji, barX + 6, powerUpY + barHeight / 2 + 1);
-            ctx.restore();
-          }
-
-          ctx.save();
-          ctx.fillStyle = 'white';
-          ctx.font = `bold ${isMobileRef.current ? '10px' : '11px'} Orbitron`;
-          ctx.textAlign = 'right';
-          ctx.fillText(`${timeLeft.toFixed(1)}s`, barX + barWidth - 8, powerUpY + barHeight / 2 + 2);
-          ctx.restore();
-
-          powerUpY += barHeight + 8;
-        }
-      });
-
-      // --- 3. CENTER: NOTIFICATIONS ---
-      if (activePowerUpMessageRef.current) {
-        const msg = activePowerUpMessageRef.current;
-        const msgAlpha = Math.min(1, msg.timer * 2); // Fade out faster
-        const startY = canvasHeight * 0.25;
-        const floatOffset = (1 - msgAlpha) * -40; // Float up
-
-        ctx.save();
-        ctx.globalAlpha = msgAlpha;
-        ctx.textAlign = 'center';
-
-        // Text Glow
-        ctx.shadowColor = msg.color;
-        ctx.shadowBlur = 20;
-
-        ctx.fillStyle = 'white'; // White text core
-        ctx.font = `900 ${isMobileRef.current ? '24px' : '36px'} Orbitron`;
-        ctx.fillText(msg.text, canvasWidth / 2, startY + floatOffset);
-
-        // Colored outline
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = msg.color;
-        ctx.strokeText(msg.text, canvasWidth / 2, startY + floatOffset);
-
-        ctx.restore();
-      }
-
-      // --- 4. TOP RIGHT: MINIMAP & LEADERBOARD ---
-
-      // -- Minimap --
-      // Calculate layout
-      const mmSize = isMobileRef.current ? 60 : 80;
+      // -- Minimap (Now Top-Left) --
+      const mmSize = isMobileRef.current ? 55 : 80;
       const mmMargin = padding;
       const mmDiameter = mmSize * 2;
-      const mmX = canvasWidth - mmSize - mmMargin; // Center X
-      const mmY = mmSize + mmMargin; // Center Y
+      const mmX = mmSize + mmMargin;
+      const mmY = mmSize + mmMargin;
 
       ctx.save();
-      // Minimap Glass Circle
+      drawGlassPanel(mmX - mmSize, mmY - mmSize, mmDiameter, mmDiameter, mmSize);
       ctx.beginPath();
       ctx.arc(mmX, mmY, mmSize, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 5, 15, 0.7)';
-      ctx.fill();
-
-      // Neon Ring Border
-      ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
-      ctx.lineWidth = 2;
-      ctx.shadowColor = 'rgba(0, 255, 255, 0.3)';
-      ctx.shadowBlur = 8;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      ctx.clip(); // Clip contents
-
-      // Grid Pattern on Minimap
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.lineWidth = 1;
-      // ... (Grid drawing optimized out for sleekness, or keeps clean) ...
+      ctx.clip();
 
       const scale = mmDiameter / MAP_SIZE;
       const mapCenterX = MAP_SIZE / 2;
       const mapCenterY = MAP_SIZE / 2;
 
-      // Draw Enemies
       state.bots.forEach(bot => {
         if (bot.isDead) return;
         const head = bot.body[0];
         const dx = (head.x - mapCenterX) * scale;
         const dy = (head.y - mapCenterY) * scale;
-
         if (dx * dx + dy * dy < mmSize * mmSize) {
           ctx.fillStyle = '#ff3333';
           ctx.beginPath();
-          ctx.arc(mmX + dx, mmY + dy, 2, 0, Math.PI * 2);
+          ctx.arc(mmX + dx, mmY + dy, 1.5, 0, Math.PI * 2);
           ctx.fill();
         }
       });
 
-      // Draw Player
       if (!state.player.isDead) {
         const pHead = state.player.body[0];
         const dx = (pHead.x - mapCenterX) * scale;
         const dy = (pHead.y - mapCenterY) * scale;
-
-        // Pulse
         ctx.fillStyle = `rgba(0, 255, 255, ${0.4 + Math.sin(animTime * 10) * 0.2})`;
         ctx.beginPath();
-        ctx.arc(mmX + dx, mmY + dy, 6, 0, Math.PI * 2);
+        ctx.arc(mmX + dx, mmY + dy, 5, 0, Math.PI * 2);
         ctx.fill();
-
-        // Core
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(mmX + dx, mmY + dy, 3, 0, Math.PI * 2);
+        ctx.arc(mmX + dx, mmY + dy, 2.5, 0, Math.PI * 2);
         ctx.fill();
       }
-      ctx.restore(); // End clip
+      ctx.restore();
 
-      // -- Leaderboard (Below Minimap) --
-      const lbY = mmY + mmSize + 15;
+      // -- Score & Wallet (Now Top-Left, next to Minimap) --
+      const statsW = isMobileRef.current ? 140 : 180;
+      const statsH = isMobileRef.current ? 60 : 75;
+      const statsX = mmX + mmSize + 15;
+      const statsY = padding;
+
+      drawGlassPanel(statsX, statsY, statsW, statsH);
+
+      ctx.save();
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+
+      // Score Label
+      ctx.font = `bold ${isMobileRef.current ? '9px' : '11px'} Rajdhani`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.fillText('SCORE', statsX + 12, statsY + 10);
+
+      // Score Value
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `900 ${isMobileRef.current ? '18px' : '22px'} Orbitron`;
+      ctx.fillText(`${Math.floor(state.player.score)}`, statsX + 12, statsY + (isMobileRef.current ? 20 : 24));
+
+      // Wallet Icons (Better Visuals)
+      const coinImg = collectibleSpritesRef.current.get(COIN_CONFIG.sprite);
+      const diamondImg = collectibleSpritesRef.current.get(DIAMOND_CONFIG.sprite);
+      const curY = statsY + (isMobileRef.current ? 42 : 54);
+      const iconSize = isMobileRef.current ? 14 : 18;
+
+      if (coinImg && coinImg.complete) {
+        ctx.drawImage(coinImg, statsX + 12, curY, iconSize, iconSize);
+      }
+      ctx.fillStyle = '#ffd700';
+      ctx.font = `700 ${isMobileRef.current ? '12px' : '15px'} Orbitron`;
+      ctx.fillText(`${walletRef.current.coins}`, statsX + 12 + iconSize + 6, curY);
+
+      const coinValWidth = ctx.measureText(`${walletRef.current.coins}`).width;
+      const dX = statsX + 12 + iconSize + 6 + coinValWidth + 12;
+
+      if (diamondImg && diamondImg.complete) {
+        ctx.drawImage(diamondImg, dX, curY, iconSize, iconSize);
+      }
+      ctx.fillStyle = '#4fc3f7';
+      ctx.fillText(`${walletRef.current.diamonds}`, dX + iconSize + 5, curY);
+
+      ctx.restore();
+
+
+      // -- Leaderboard (Top-Right Corner) --
       const lbW = isMobileRef.current ? 120 : 160;
-      const lbH = isMobileRef.current ? 180 : 220;
+      const lbH = isMobileRef.current ? 150 : 200;
       const lbX = canvasWidth - lbW - padding;
+      const lbY = padding;
 
-      // Glass Panel for Leaderboard
       drawGlassPanel(lbX, lbY, lbW, lbH);
 
-      // Header
       ctx.save();
       ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.font = `bold ${isMobileRef.current ? '12px' : '13px'} Orbitron`;
+      ctx.font = `bold ${isMobileRef.current ? '11px' : '13px'} Orbitron`;
       ctx.textAlign = 'center';
-      ctx.fillText('LEADERBOARD', lbX + lbW / 2, lbY + 20);
+      ctx.fillText('LEADERBOARD', lbX + lbW / 2, lbY + 18);
 
-      // Divider
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-      ctx.moveTo(lbX + 10, lbY + 30);
-      ctx.lineTo(lbX + lbW - 10, lbY + 30);
-      ctx.stroke();
-
-      // List
-      const allWorms = [state.player, ...state.bots];
-      const sortedWorms = allWorms.filter(w => !w.isDead).sort((a, b) => b.score - a.score).slice(0, 8); // Top 8 fits better
+      const sortedWorms = [state.player, ...state.bots].filter(w => !w.isDead).sort((a, b) => b.score - a.score).slice(0, 7);
 
       ctx.textAlign = 'left';
       sortedWorms.forEach((w, i) => {
-        const rowY = lbY + 50 + (i * 20);
+        const rowY = lbY + 42 + (i * (isMobileRef.current ? 16 : 22));
         const isMe = w.id === 'player';
+        ctx.font = `${isMe ? '700' : '500'} ${isMobileRef.current ? '10px' : '12px'} Rajdhani`;
 
-        ctx.font = `600 ${isMobileRef.current ? '10px' : '12px'} Rajdhani`;
-
-        // Rank
-        ctx.fillStyle = i < 3 ? '#ffd700' : 'rgba(255,255,255,0.5)';
+        ctx.fillStyle = i < 3 ? '#ffd700' : 'rgba(255,255,255,0.4)';
         ctx.fillText(`${i + 1}.`, lbX + 10, rowY);
 
-        // Name
         ctx.fillStyle = isMe ? '#4ade80' : 'rgba(255,255,255,0.8)';
-        let cleanName = w.name;
-        if (cleanName.length > 8) cleanName = cleanName.substring(0, 8) + '..';
-        ctx.fillText(cleanName, lbX + 25, rowY);
+        let cName = w.name;
+        if (cName.length > (isMobileRef.current ? 8 : 10)) cName = cName.substring(0, isMobileRef.current ? 7 : 9) + '..';
+        ctx.fillText(cName, lbX + 26, rowY);
 
-        // Score
         ctx.textAlign = 'right';
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
         ctx.fillText(Math.floor(w.score).toString(), lbX + lbW - 10, rowY);
-        ctx.textAlign = 'left'; // Reset
+        ctx.textAlign = 'left';
       });
       ctx.restore();
+
+
+      // --- 2. ACTIVE POWER-UPS (Left Edge) ---
+      let puy = isMobileRef.current ? canvasHeight / 2 - 50 : 150;
+      const pbW = isMobileRef.current ? 100 : 130;
+      const pbH = isMobileRef.current ? 20 : 24;
+      const pTypes: (keyof typeof state.player.powerUps)[] = ['magnet', 'speed', 'freeze', 'shield'];
+
+      pTypes.forEach(type => {
+        if (state.player.powerUps[type] > 0) {
+          const config = POWER_UP_CONFIG[type];
+          const ratio = Math.max(0, state.player.powerUps[type] / config.maxDuration);
+          drawGlassPanel(padding, puy, pbW, pbH, 6);
+
+          if (ratio > 0) {
+            ctx.save();
+            ctx.fillStyle = config.color;
+            ctx.shadowColor = config.color;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(padding + 1, puy + 1, (pbW - 2) * ratio, pbH - 2, 4);
+            ctx.fill();
+            ctx.restore();
+          }
+
+          const s = powerUpSpritesRef.current.get(config.sprite);
+          if (s && s.complete) {
+            ctx.drawImage(s, padding + 4, puy + 3, pbH - 6, pbH - 6);
+          }
+
+          ctx.fillStyle = 'white';
+          ctx.font = `bold ${isMobileRef.current ? '9px' : '10px'} Orbitron`;
+          ctx.textAlign = 'right';
+          ctx.fillText(`${state.player.powerUps[type].toFixed(1)}s`, padding + pbW - 6, puy + pbH / 2 + 4);
+
+          puy += pbH + 8;
+        }
+      });
+
+      // --- 3. NOTIFICATIONS (Top Center) ---
+      if (activePowerUpMessageRef.current) {
+        const msg = activePowerUpMessageRef.current;
+        const msgAlpha = Math.min(1, msg.timer * 2);
+        ctx.save();
+        ctx.globalAlpha = msgAlpha;
+        ctx.textAlign = 'center';
+        ctx.shadowColor = msg.color;
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = 'white';
+        ctx.font = `900 ${isMobileRef.current ? '20px' : '32px'} Orbitron`;
+        ctx.fillText(msg.text, canvasWidth / 2, 80);
+        ctx.restore();
+      }
 
       // Draw virtual joystick
       drawJoystick(ctx, canvas);
@@ -2034,105 +1983,93 @@ export default GameCanvas;
 
 // --- Standalone Helper Functions ---
 
-const drawGrid = (ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, camera: Vector2, arenaId: string = 'dark') => {
+const drawWorldGrid = (ctx: CanvasRenderingContext2D, camera: Vector2, worldViewWidth: number, worldViewHeight: number, arenaId: string = 'dark') => {
   const config = ARENA_CONFIG[arenaId] || ARENA_CONFIG['dark'];
 
-  // 1. Solid Background
-  ctx.fillStyle = config.colors.background;
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-  // 2. Grid / Pattern
-  ctx.lineWidth = 1; // Thinner grid
+  // 1. Grid / Pattern (Drawn in world space)
+  ctx.lineWidth = 1;
   ctx.strokeStyle = config.colors.grid;
 
-  const offsetX = -camera.x % 50;
-  const offsetY = -camera.y % 50;
+  const step = 50;
+  const startX = Math.floor(camera.x / step) * step;
+  const startY = Math.floor(camera.y / step) * step;
+  const endX = camera.x + worldViewWidth;
+  const endY = camera.y + worldViewHeight;
 
   ctx.beginPath();
 
-  // Render specific pattern based on config
   if (config.pattern === 'hex') {
-    // Hexagonal Grid for "Neon"
     const r = 30;
     const h = r * Math.sqrt(3);
-    const w = 2 * r; // Width of a hex
-
-    // Calculate start hex to cover screen
+    const w = 2 * r;
     const startQ = Math.floor(camera.x / (w * 0.75)) - 1;
     const startR = Math.floor(camera.y / h) - 1;
-    const countX = Math.ceil(canvasWidth / (w * 0.75)) + 2;
-    const countY = Math.ceil(canvasHeight / h) + 2;
+    const countX = Math.ceil(worldViewWidth / (w * 0.75)) + 2;
+    const countY = Math.ceil(worldViewHeight / h) + 2;
 
     for (let q = startQ; q < startQ + countX; q++) {
       for (let r = startR; r < startR + countY; r++) {
         const x = q * w * 0.75;
         const y = r * h + (q % 2) * (h / 2);
-
-        // Draw hex at (x,y) - relative to camera
-        const cx = x - camera.x;
-        const cy = y - camera.y;
-
-        // Only draw if visible
-        if (cx < -w || cx > canvasWidth + w || cy < -h || cy > canvasHeight + h) continue;
-
-        ctx.moveTo(cx + r * Math.cos(0), cy + r * Math.sin(0));
+        ctx.moveTo(x + r * Math.cos(0), y + r * Math.sin(0));
         for (let i = 0; i < 7; i++) {
-          ctx.lineTo(cx + 30 * Math.cos(i * Math.PI / 3), cy + 30 * Math.sin(i * Math.PI / 3));
+          ctx.lineTo(x + 30 * Math.cos(i * Math.PI / 3), y + 30 * Math.sin(i * Math.PI / 3));
         }
       }
     }
   } else if (config.pattern === 'stars') {
-    // Static star field
-    for (let x = offsetX; x < canvasWidth; x += 100) {
-      for (let y = offsetY; y < canvasHeight; y += 100) {
-        const cellX = Math.floor((camera.x + x) / 100);
-        const cellY = Math.floor((camera.y + y) / 100);
-        const hash = Math.sin(cellX * 12.9898 + cellY * 78.233) * 43758.5453;
+    // Static stars need to be drawn in screen space usually, or large world-space grid
+    // For simplicity with zoom, we'll keep them world-aligned here
+    for (let x = startX; x <= endX; x += 100) {
+      for (let y = startY; y <= endY; y += 100) {
+        const hash = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
         const starX = x + (Math.abs(hash) % 100);
         const starY = y + (Math.abs(hash * 10) % 100);
         const size = (Math.abs(hash * 100) % 3) + 1;
-
-        ctx.globalAlpha = (Math.abs(hash * 20) % 10) / 10;
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = 'rgba(255, 255, 255, ' + ((Math.abs(hash * 20) % 10) / 10) + ')';
         ctx.fillRect(starX, starY, size, size);
       }
     }
-    ctx.globalAlpha = 1.0;
   } else if (config.pattern === 'field') {
     // Soccer Field: Stripes
     const stripeSize = 200;
-    const fieldOffX = -camera.x % (stripeSize * 2);
-
-    for (let x = fieldOffX; x < canvasWidth; x += stripeSize * 2) {
+    const fieldStartX = Math.floor(camera.x / (stripeSize * 2)) * (stripeSize * 2);
+    for (let x = fieldStartX; x <= endX; x += stripeSize * 2) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.fillRect(x, 0, stripeSize, canvasHeight);
+      ctx.fillRect(x, camera.y, stripeSize, worldViewHeight);
     }
-    // Draw Grid lines on top
-    ctx.beginPath();
-    for (let x = offsetX; x < canvasWidth; x += 50) {
-      ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight);
+    // Lines
+    for (let x = startX; x <= endX; x += step) {
+      ctx.moveTo(x, camera.y); ctx.lineTo(x, endY);
     }
-    for (let y = offsetY; y < canvasHeight; y += 50) {
-      ctx.moveTo(0, y); ctx.lineTo(canvasWidth, y);
+    for (let y = startY; y <= endY; y += step) {
+      ctx.moveTo(camera.x, y); ctx.lineTo(endX, y);
     }
   } else {
     // Default Grid
-    for (let x = offsetX; x < canvasWidth; x += 50) {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvasHeight);
+    for (let x = startX; x <= endX; x += step) {
+      ctx.moveTo(x, camera.y);
+      ctx.lineTo(x, endY);
     }
-    for (let y = offsetY; y < canvasHeight; y += 50) {
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvasWidth, y);
+    for (let y = startY; y <= endY; y += step) {
+      ctx.moveTo(camera.x, y);
+      ctx.lineTo(endX, y);
     }
   }
 
   ctx.stroke();
 
-  // Map Boundaries
+  // 2. Map Boundary (NOW PERFECTLY ALIGNED IN WORLD SPACE)
   ctx.strokeStyle = config.colors.border;
-  ctx.lineWidth = 5;
+  ctx.lineWidth = 10; // Thicker for better visibility
   ctx.beginPath();
-  ctx.arc(MAP_SIZE / 2 - camera.x, MAP_SIZE / 2 - camera.y, MAP_SIZE / 2, 0, Math.PI * 2);
+  ctx.arc(MAP_SIZE / 2, MAP_SIZE / 2, MAP_SIZE / 2, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Draw dark-out outside boundary
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.lineWidth = 500; // Fake "fog of war" outside arena
+  ctx.beginPath();
+  ctx.arc(MAP_SIZE / 2, MAP_SIZE / 2, MAP_SIZE / 2 + 250, 0, Math.PI * 2);
   ctx.stroke();
 };
