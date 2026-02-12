@@ -103,14 +103,14 @@ const MainMenu: React.FC<MainMenuProps> = ({
       radius: heroRadius,
     };
 
-    // Background worms - Standard wander
-    bgWormsRef.current = Array.from({ length: 4 }, (_, idx) => {
+    // Background worms - Standard wander (fewer on mobile)
+    bgWormsRef.current = Array.from({ length: isMobile ? 2 : 4 }, (_, idx) => {
       const body: { x: number; y: number }[] = [];
       const sx = Math.random() * w;
       const sy = Math.random() * h;
       const r = isMobile ? 4 : 6;
       const ang = Math.random() * Math.PI * 2;
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < (isMobile ? 10 : 15); i++) {
         body.push({
           x: sx - Math.cos(ang) * i * r * 1.1,
           y: sy - Math.sin(ang) * i * r * 1.1
@@ -128,11 +128,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
     // Floating food - ORBS
     const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'];
-    foodRef.current = Array.from({ length: 25 }, (_, i) => ({
+    foodRef.current = Array.from({ length: isMobile ? 12 : 25 }, (_, i) => ({
       x: Math.random() * w,
       y: Math.random() * h,
-      size: (isMobile ? 6 : 10) + Math.random() * 6,
-      emoji: colors[i % colors.length], // Color string
+      size: (isMobile ? 5 : 10) + Math.random() * 6,
+      emoji: colors[i % colors.length],
       bobOffset: Math.random() * Math.PI * 2,
       speed: 0.2 + Math.random() * 0.4,
     }));
@@ -230,8 +230,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
     const { body, skin, radius } = worm;
     if (!body || body.length === 0) return;
 
-    // Glow trail for hero
-    if (isHero) {
+    // Glow trail for hero - DISABLED ON MOBILE FOR PERFORMANCE
+    if (isHero && !isMobile) {
       ctx.save();
       ctx.globalAlpha = 0.08;
       for (let i = body.length - 1; i >= 0; i -= 3) {
@@ -252,26 +252,31 @@ const MainMenu: React.FC<MainMenuProps> = ({
     for (let i = body.length - 1; i >= 0; i--) {
       const seg = body[i];
       if (!seg) continue;
-      // Much less taper for a thicker, cuter body
       const taper = 1 - (i / body.length) * 0.15;
       const r = radius * taper;
       const colorIdx = Math.floor(i / 2) % skin.colors.length;
 
-      const grad = ctx.createRadialGradient(
-        seg.x - r * 0.3, seg.y - r * 0.3, r * 0.1,
-        seg.x, seg.y, r
-      );
-      grad.addColorStop(0, lightenColor(skin.colors[colorIdx], 40));
-      grad.addColorStop(0.5, lightenColor(skin.colors[colorIdx], 10));
-      grad.addColorStop(0.8, skin.colors[colorIdx]);
-      grad.addColorStop(1, darkenColor(skin.colors[colorIdx], 30));
+      if (isMobile) {
+        // MOBILE: flat solid color — no radial gradients
+        ctx.fillStyle = skin.colors[colorIdx];
+      } else {
+        const grad = ctx.createRadialGradient(
+          seg.x - r * 0.3, seg.y - r * 0.3, r * 0.1,
+          seg.x, seg.y, r
+        );
+        grad.addColorStop(0, lightenColor(skin.colors[colorIdx], 40));
+        grad.addColorStop(0.5, lightenColor(skin.colors[colorIdx], 10));
+        grad.addColorStop(0.8, skin.colors[colorIdx]);
+        grad.addColorStop(1, darkenColor(skin.colors[colorIdx], 30));
+        ctx.fillStyle = grad;
+      }
 
-      ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(seg.x, seg.y, r, 0, Math.PI * 2);
       ctx.fill();
 
-      if (isHero && i % 3 === 0) {
+      // Specular highlight only on desktop
+      if (!isMobile && isHero && i % 3 === 0) {
         ctx.save();
         ctx.globalAlpha = 0.3;
         ctx.fillStyle = 'white';
@@ -290,16 +295,19 @@ const MainMenu: React.FC<MainMenuProps> = ({
     // Head size reduced to be roughly equal/slightly smaller than body max width
     const hr = radius * (isHero ? 0.95 : 1.0);
 
-    const hGrad = ctx.createRadialGradient(
-      head.x - hr * 0.25, head.y - hr * 0.25, hr * 0.1,
-      head.x, head.y, hr
-    );
-    hGrad.addColorStop(0, lightenColor(skin.headColor, 45));
-    hGrad.addColorStop(0.4, lightenColor(skin.headColor, 15));
-    hGrad.addColorStop(0.8, skin.headColor);
-    hGrad.addColorStop(1, darkenColor(skin.headColor, 30));
-
-    ctx.fillStyle = hGrad;
+    if (isMobile) {
+      ctx.fillStyle = skin.headColor;
+    } else {
+      const hGrad = ctx.createRadialGradient(
+        head.x - hr * 0.25, head.y - hr * 0.25, hr * 0.1,
+        head.x, head.y, hr
+      );
+      hGrad.addColorStop(0, lightenColor(skin.headColor, 45));
+      hGrad.addColorStop(0.4, lightenColor(skin.headColor, 15));
+      hGrad.addColorStop(0.8, skin.headColor);
+      hGrad.addColorStop(1, darkenColor(skin.headColor, 30));
+      ctx.fillStyle = hGrad;
+    }
     ctx.beginPath();
     ctx.arc(head.x, head.y, hr, 0, Math.PI * 2);
     ctx.fill();
@@ -314,9 +322,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
     const eyeR = hr * (isHero ? 0.38 : 0.35);
     const pupilR = hr * (isHero ? 0.22 : 0.2);
 
-    ctx.shadowColor = 'rgba(0,0,0,0.15)';
-    ctx.shadowBlur = 3;
-    ctx.shadowOffsetY = 1;
+    if (!isMobile) {
+      ctx.shadowColor = 'rgba(0,0,0,0.15)';
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetY = 1;
+    }
     ctx.fillStyle = 'white';
     ctx.beginPath();
     ctx.arc(hr * 0.25, -eyeOff, eyeR, 0, Math.PI * 2);
@@ -365,17 +375,19 @@ const MainMenu: React.FC<MainMenuProps> = ({
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
 
-    ctx.save();
-    ctx.globalAlpha = 0.04;
-    ctx.fillStyle = '#ffffff';
-    for (let x = 0; x < w; x += 30) {
-      for (let y = 0; y < h; y += 30) {
-        ctx.beginPath();
-        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-        ctx.fill();
+    if (!isMobile) {
+      ctx.save();
+      ctx.globalAlpha = 0.04;
+      ctx.fillStyle = '#ffffff';
+      for (let x = 0; x < w; x += 30) {
+        for (let y = 0; y < h; y += 30) {
+          ctx.beginPath();
+          ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
+      ctx.restore();
     }
-    ctx.restore();
 
     const vignette = ctx.createRadialGradient(w / 2, h / 2, w * 0.25, w / 2, h / 2, Math.max(w, h) * 0.7);
     vignette.addColorStop(0, 'rgba(0,0,0,0)');
@@ -386,15 +398,23 @@ const MainMenu: React.FC<MainMenuProps> = ({
     foodRef.current.forEach(food => {
       const bobY = Math.sin(time * food.speed + food.bobOffset) * 8;
       const r = food.size;
-      const g = ctx.createRadialGradient(food.x, food.y + bobY, 0, food.x, food.y + bobY, r);
-      g.addColorStop(0, 'white');
-      g.addColorStop(0.5, food.emoji);
-      g.addColorStop(1, 'transparent');
       ctx.globalAlpha = 0.8;
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(food.x, food.y + bobY, r, 0, Math.PI * 2);
-      ctx.fill();
+      if (isMobile) {
+        // MOBILE: simple solid circle
+        ctx.fillStyle = food.emoji;
+        ctx.beginPath();
+        ctx.arc(food.x, food.y + bobY, r, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        const g = ctx.createRadialGradient(food.x, food.y + bobY, 0, food.x, food.y + bobY, r);
+        g.addColorStop(0, 'white');
+        g.addColorStop(0.5, food.emoji);
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(food.x, food.y + bobY, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
     });
 
     ctx.save();
@@ -449,7 +469,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
     if (!ctx) return;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
       canvas.style.width = window.innerWidth + 'px';
@@ -467,7 +487,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
       lastTimeRef.current = now;
       const time = now / 1000;
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const w = window.innerWidth;
@@ -513,7 +533,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
         </div>
 
         {/* Name Only */}
-        <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-4 py-1.5 flex items-center shadow-lg">
+        <div className="bg-black/60 border border-white/10 rounded-full px-4 py-1.5 flex items-center shadow-lg">
           <span className="text-white font-orbitron font-bold text-lg tracking-wide drop-shadow-md">{name || 'PLAYER'}</span>
           <button onClick={() => { const n = prompt('Enter Name'); if (n) setName(n); }} className="ml-2 text-white/50 hover:text-white transition-colors">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
@@ -524,7 +544,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
       {/* TOP RIGHT - Currency (Large & Clear) */}
       {wallet && (
         <div className={`absolute top-4 right-4 z-20 transition-all duration-700 delay-100 transform ${menuReady ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0'}`}>
-          <div className="flex items-center gap-6 bg-black/40 backdrop-blur-md rounded-full px-6 py-2 border border-white/10 shadow-xl">
+          <div className="flex items-center gap-6 bg-black/60 rounded-full px-6 py-2 border border-white/10 shadow-xl">
             {/* Diamonds - 3D Logo, No Bubble */}
             <div className="flex items-center gap-2 drop-shadow-lg">
               <img src="/assets/ui/diamond_3d.svg" alt="Diamond" className="w-10 h-10 object-contain drop-shadow-md" />
@@ -552,7 +572,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
       <div className={`absolute top-28 right-6 z-20 transition-all duration-700 delay-200 transform ${menuReady ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
         <button
           onClick={() => setShowQuitModal(true)}
-          className="group flex items-center gap-2 bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 rounded-full px-4 py-1.5 transition-all hover:scale-105 active:scale-95 shadow-lg backdrop-blur-md"
+          className="group flex items-center gap-2 bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 rounded-full px-4 py-1.5 transition-all hover:scale-105 active:scale-95 shadow-lg"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-400 group-hover:text-red-200">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -646,7 +666,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
           adManager.showInterstitial();
           setShowSettings(true);
         }} className="flex flex-col items-center gap-1 group active:scale-95 hover:-translate-y-1 transition-transform">
-          <div className="w-14 h-14 flex items-center justify-center filter drop-shadow-md text-white bg-black/40 rounded-2xl border border-white/10 hover:bg-black/60 transition-colors backdrop-blur-md shadow-lg">
+          <div className="w-14 h-14 flex items-center justify-center filter drop-shadow-md text-white bg-black/60 rounded-2xl border border-white/10 hover:bg-black/80 transition-colors shadow-lg">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           </div>
           <span className="text-[11px] font-bold text-white/90 shadow-black drop-shadow-md tracking-wider">SETTINGS</span>
@@ -660,7 +680,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
             adManager.showInterstitial();
             onOpenUpgrades();
           }} className="flex flex-col items-center gap-1 group active:scale-95 hover:-translate-y-1 transition-transform">
-            <div className="w-14 h-14 flex items-center justify-center filter drop-shadow-md text-white bg-black/40 rounded-2xl border border-white/10 hover:bg-black/60 transition-colors backdrop-blur-md shadow-lg">
+            <div className="w-14 h-14 flex items-center justify-center filter drop-shadow-md text-white bg-black/60 rounded-2xl border border-white/10 hover:bg-black/80 transition-colors shadow-lg">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             </div>
             <span className="text-[11px] font-bold text-white/90 shadow-black drop-shadow-md tracking-wider">UPGRADES</span>
@@ -670,7 +690,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
       {/* QUIT CONFIRMATION MODAL - Root Level */}
       {showQuitModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in bg-black/80 backdrop-blur-sm pointer-events-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in bg-black/80 pointer-events-auto">
           <div className="bg-[#1a0b2e] border-2 border-red-500/50 rounded-3xl p-6 w-[90%] max-w-sm text-center shadow-[0_0_50px_rgba(220,38,38,0.5)] transform scale-100 animate-bounce-small relative">
 
             <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/50">

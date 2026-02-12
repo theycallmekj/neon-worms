@@ -8,18 +8,23 @@
 
 /* Full-screen game */
 html,
-body,
-#root {
+body {
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
   position: fixed;
   inset: 0;
   background: #050b14;
-  /* Deep dark background */
   overflow: hidden;
   overscroll-behavior: none;
-  touch-action: none;
-  /* Prevent browser gestures */
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
 }
 
 /* Optimize canvas rendering */
@@ -87,10 +92,43 @@ button:active {
 /* Glass Panel */
 .glass-panel {
   background: rgba(10, 15, 30, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Enable backdrop-filter only on powerful devices (non-touch/desktop) */
+@media (hover: hover) {
+  .glass-panel {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Touch Scrolling Utility - Android Compatible */
+.touch-scroll-y {
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: scroll !important;
+  overflow-x: hidden;
+}
+
+/* Thin neon scrollbar - visible for usability */
+.touch-scroll-y::-webkit-scrollbar {
+  width: 4px;
+}
+
+.touch-scroll-y::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.touch-scroll-y::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.3);
+  border-radius: 4px;
+}
+
+.touch-scroll-y::-webkit-scrollbar-thumb:active {
+  background: rgba(0, 229, 255, 0.6);
 }
 
 /* Neon Text */

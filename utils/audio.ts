@@ -62,13 +62,18 @@ export class AudioController {
     requestMusicStart() {
         if (this.musicStarted) return;
 
+        // Prevent multiple rapid calls while promise is pending
+        if ((this as any)._isTryingToPlay) return;
+        (this as any)._isTryingToPlay = true;
+
         const music = this.sounds.get('game');
         if (music) {
             music.play().then(() => {
                 this.musicStarted = true;
+                (this as any)._isTryingToPlay = false;
             }).catch(e => {
+                (this as any)._isTryingToPlay = false;
                 // Expected if no user interaction yet
-                // console.log("Waiting for interaction to start music");
             });
         }
     }

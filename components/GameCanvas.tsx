@@ -472,8 +472,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
     // Determine overlapping factor for body segments
     const totalSegments = w.body.length;
-    // Optimize: Draw fewer segments for image/composite skins
-    const baseSkip = (isImageSkin || isCompositeSkin) ? 3 : 1;
+    // Optimize: Draw fewer segments for image/composite skins OR mobile
+    const baseSkip = (isImageSkin || isCompositeSkin || isMobileRef.current) ? 3 : 1;
     const skipFactor = Math.max(baseSkip, Math.ceil(totalSegments / MAX_VISIBLE_SEGMENTS));
 
     // Draw body segments (from tail to head)
@@ -525,7 +525,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
         // Pattern: Electric/Neon Glow
         const isElectric = w.skin.pattern === 'electric';
-        if (isElectric) {
+        if (isElectric && !isMobileRef.current) {
           ctx.shadowBlur = 8;
           ctx.shadowColor = color;
         }
@@ -555,7 +555,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         }
 
         // 3D Shine (Glossy look)
-        if (!isElectric) {
+        if (!isElectric && !isMobileRef.current) {
           ctx.fillStyle = 'rgba(255,255,255,0.15)';
           ctx.beginPath();
           ctx.ellipse(pos.x - adjustedRadius * 0.2, pos.y - adjustedRadius * 0.2, adjustedRadius * 0.3, adjustedRadius * 0.15, Math.PI / 4, 0, Math.PI * 2);
@@ -1325,7 +1325,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             }
             onWalletChange(newWallet);
             state.collectibles.splice(i, 1);
-            if (c.type === 'coin') audioController.play('coin');
+            if (c.type === 'coin') audioController.play('coin', true);
             // Can add diamond sound later if needed
           } else if (c.type === 'coin' && Date.now() - c.spawnTime > 15000) {
             // Expire Coin after 15s and Respawn Elsewhere
@@ -1416,7 +1416,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         // Type-specific effects
         if (pit.type === 'lava') {
           // Lava bubbles
-          for (let i = 0; i < 6; i++) {
+          const bubbleCount = isMobileRef.current ? 3 : 6;
+          for (let i = 0; i < bubbleCount; i++) {
             const angle = (animTime * 0.5 + i * Math.PI / 3) % (Math.PI * 2);
             const dist = pit.radius * 0.4 + Math.sin(animTime * 2 + i) * 20;
             const bx = Math.cos(angle) * dist;
@@ -1441,7 +1442,8 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
           ctx.restore();
         } else if (pit.type === 'acid') {
           // Bubbling effect
-          for (let i = 0; i < 8; i++) {
+          const bubbleCount = isMobileRef.current ? 4 : 8;
+          for (let i = 0; i < bubbleCount; i++) {
             const bx = Math.sin(animTime * 2 + i * 1.2) * pit.radius * 0.5;
             const by = Math.cos(animTime * 1.5 + i * 0.8) * pit.radius * 0.5;
             const bsize = 4 + Math.sin(animTime * 4 + i) * 2;
@@ -1650,7 +1652,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.textAlign = 'center';
         ctx.fillStyle = ft.color;
         ctx.shadowColor = ft.color;
-        ctx.shadowBlur = 10;
+        if (!isMobileRef.current) ctx.shadowBlur = 10;
         ctx.fillText(ft.text, ft.x, ft.y);
         ctx.restore();
       });
@@ -1687,7 +1689,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
 
         // Inner glow
         ctx.shadowColor = config.color;
-        ctx.shadowBlur = 20;
+        if (!isMobileRef.current) ctx.shadowBlur = 20;
         ctx.beginPath();
         ctx.arc(0, 0, pu.radius * 0.8 * pulse, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255,255,255,0.3)';
@@ -1946,7 +1948,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
             ctx.save();
             ctx.fillStyle = config.color;
             ctx.shadowColor = config.color;
-            ctx.shadowBlur = 8;
+            if (!isMobileRef.current) ctx.shadowBlur = 8;
             ctx.beginPath();
             if (ctx.roundRect) ctx.roundRect(padding + 1, puy + 1, (pbW - 2) * ratio, pbH - 2, 4);
             ctx.fill();
@@ -1976,7 +1978,7 @@ const GameCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(({ playerName, 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.shadowColor = msg.color;
-        ctx.shadowBlur = 15;
+        if (!isMobileRef.current) ctx.shadowBlur = 15;
         ctx.fillStyle = 'white';
 
         const fontSize = isMobileRef.current ? 20 : 32;

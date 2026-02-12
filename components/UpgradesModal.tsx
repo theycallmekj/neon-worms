@@ -63,7 +63,7 @@ const UpgradesModal: React.FC<UpgradesModalProps> = ({ isOpen, onClose, wallet, 
     return (
         <div className="fixed inset-0 z-[100] flex flex-col sm:items-center sm:justify-center animate-fade-in-up">
             {/* Backdrop */}
-            <div onClick={onClose} className="absolute inset-0 bg-black/90 backdrop-blur-md sm:bg-black/80 transition-opacity duration-300" />
+            <div onClick={onClose} className="absolute inset-0 bg-black/90 sm:bg-black/80 transition-opacity duration-300" />
 
             {/* Modal Container */}
             <div className="relative z-10 w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[90vh] sm:rounded-3xl overflow-hidden flex flex-col bg-[#0a0a0f] sm:border sm:border-white/10 sm:shadow-[0_0_80px_rgba(0,0,0,0.8)] safe-area-inset">
@@ -105,7 +105,7 @@ const UpgradesModal: React.FC<UpgradesModalProps> = ({ isOpen, onClose, wallet, 
                 </div>
 
                 {/* Content - Scrollable Grid */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 bg-[#0a0a0f] pb-28 sm:pb-6 relative">
+                <div className="flex-1 touch-scroll-y p-4 sm:p-6 bg-[#0a0a0f] pb-28 sm:pb-6 relative min-h-0" style={{ overflowY: 'auto', minHeight: 0, WebkitOverflowScrolling: 'touch' }}>
                     {/* Background Grid Pattern */}
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
 
@@ -201,7 +201,7 @@ const UpgradesModal: React.FC<UpgradesModalProps> = ({ isOpen, onClose, wallet, 
 
                                     {/* Action Area - Separate from Content */}
                                     {!isMax && (
-                                        <div className="p-3 bg-black/40 border-t border-white/5 grid grid-cols-2 gap-3 relative z-20 backdrop-blur-sm">
+                                        <div className="p-3 bg-black/60 border-t border-white/5 grid grid-cols-2 gap-3 relative z-20">
                                             <button
                                                 onClick={() => onUpgrade(type, 'coins')}
                                                 disabled={!canAffordCoins}
@@ -248,7 +248,7 @@ const UpgradesModal: React.FC<UpgradesModalProps> = ({ isOpen, onClose, wallet, 
                 </div>
 
                 {/* Footer - Close Button for Mobile Accessibility */}
-                <div className="p-4 border-t border-white/5 bg-black/90 backdrop-blur-xl shrink-0 safe-area-inset sm:hidden shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-40">
+                <div className="p-4 border-t border-white/5 bg-black/90 shrink-0 safe-area-inset sm:hidden shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-40">
                     <NeonButton variant="primary" fullWidth onClick={onClose} className="py-4 text-lg tracking-widest font-black shadow-lg">
                         EXIT LAB
                     </NeonButton>

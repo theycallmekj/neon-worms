@@ -119,7 +119,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                 </div>
 
                 {/* Internal Translucent Label Box - Smaller & Pill-shaped */}
-                <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full backdrop-blur-md shadow-lg transition-colors border border-white/10 ${settings.foodType === 'random' ? 'bg-yellow-400/20 text-yellow-300' : 'bg-black/40 text-white/70'}`}>
+                <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full backdrop-blur-none shadow-lg transition-colors border border-white/10 ${settings.foodType === 'random' ? 'bg-yellow-400/20 text-yellow-300' : 'bg-black/40 text-white/70'}`}>
                     <span className="font-orbitron font-bold text-[10px] sm:text-xs tracking-wider whitespace-nowrap">
                         RANDOM
                     </span>
@@ -156,7 +156,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                         </div>
 
                         {/* Internal Translucent Label Box */}
-                        <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full backdrop-blur-md shadow-lg transition-colors border border-white/10 ${isSelected ? 'bg-yellow-400/20 text-yellow-300' : 'bg-black/40 text-white/70'}`}>
+                        <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full backdrop-blur-none shadow-lg transition-colors border border-white/10 ${isSelected ? 'bg-yellow-400/20 text-yellow-300' : 'bg-black/40 text-white/70'}`}>
                             <span className="font-orbitron font-bold text-[10px] sm:text-xs tracking-wider whitespace-nowrap">
                                 {itemConfig.name.split(' ')[0].toUpperCase()}
                             </span>
@@ -202,7 +202,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                         />
 
                         {/* Internal Label Box */}
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 z-10 shadow-lg">
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-none border border-white/10 z-10 shadow-lg">
                             <h4 className={`font-orbitron font-bold text-[10px] sm:text-xs tracking-wider whitespace-nowrap ${isSelected ? 'text-blue-400' : 'text-white'}`}>{arena.name.toUpperCase()}</h4>
                         </div>
 
@@ -351,24 +351,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
     );
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0a0a1a]/90 p-4 animate-fade-in">
             {/* Click outside to close */}
             <div className="absolute inset-0" onClick={onClose} />
 
             {/* Main Container - Adjusted Size/Width */}
-            <div className="relative z-10 w-full max-w-5xl h-[90vh] md:h-[80vh] flex flex-row overflow-hidden rounded-3xl md:rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] bg-[#0a0a1a]/95 backdrop-blur-2xl">
+            <div className="relative z-10 w-full max-w-5xl h-[90vh] md:h-[80vh] flex flex-row overflow-hidden rounded-3xl md:rounded-[3rem] border border-white/10 shadow-2xl bg-[#0a0a1a] safe-area-inset">
 
                 {/* Close Button - TOP LEFT (Absolute) */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 left-4 md:top-6 md:left-6 z-50 w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform hover:scale-110 active:scale-95 group border border-white/10 shadow-lg"
+                    className="absolute top-4 left-4 md:top-6 md:left-6 z-50 w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-transform hover:scale-110 active:scale-95 group border border-white/10 shadow-lg"
                 >
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/70 group-hover:text-white transition-colors"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
 
                 {/* Left Content Area (Scrollable) - EXPANDED */}
-                <div className="flex-1 flex flex-col relative bg-transparent pt-16 md:pt-20 pb-4 pl-3 md:pl-4 pr-0">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-4">
+                <div className="flex-1 flex flex-col relative bg-transparent pt-16 md:pt-20 pb-4 pl-3 md:pl-4 pr-0 min-h-0">
+                    <div className="flex-1 touch-scroll-y pr-2 pb-4 min-h-0" style={{ overflowY: 'auto', minHeight: 0, WebkitOverflowScrolling: 'touch' }}>
                         {activeTab === 'nutrition' && renderNutrition()}
                         {activeTab === 'arena' && renderArena()}
                         {activeTab === 'hazards' && renderHazards()}

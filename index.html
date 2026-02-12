@@ -42,7 +42,7 @@
     body {
       font-family: 'Rajdhani', sans-serif;
       background-color: #0f172a;
-      touch-action: none;
+      touch-action: manipulation;
     }
 
     .font-display {
@@ -141,11 +141,12 @@
       screen.orientation.lock('landscape').catch(() => { });
     }
 
-    // Prevent default touch behaviors
+    // Prevent default touch behaviors EXCEPT inside scrollable areas
     document.addEventListener('touchmove', function (e) {
-      if (e.target.tagName !== 'INPUT') {
-        e.preventDefault();
-      }
+      // Allow scroll inside .touch-scroll-y containers
+      if (e.target.closest && e.target.closest('.touch-scroll-y')) return;
+      if (e.target.tagName === 'INPUT') return;
+      e.preventDefault();
     }, { passive: false });
 
     // Prevent context menu on long press

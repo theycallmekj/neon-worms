@@ -64,25 +64,25 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in bg-black/90 backdrop-blur-md">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in bg-[#050510]/95">
             {/* Backdrop */}
             <div className="absolute inset-0" onClick={onClose} />
 
             {/* Modal Container */}
-            <div className="relative z-10 w-full h-[95%] sm:h-[90%] max-w-6xl flex flex-col bg-[#0a0a0f] sm:border sm:border-white/10 rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(74,222,128,0.15)] safe-area-inset transform transition-all duration-300 scale-100">
+            <div className="relative z-10 w-full h-[95%] sm:h-[90%] max-w-6xl flex flex-col bg-[#0a0a0f] sm:border sm:border-white/10 rounded-3xl overflow-hidden shadow-xl safe-area-inset transform transition-all duration-300 scale-100">
 
                 {/* Header */}
                 <div className="bg-gradient-to-r from-slate-900 to-black p-5 flex justify-between items-center border-b border-white/5 shrink-0 z-20 shadow-md">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/5 border border-green-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400 drop-shadow-md"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/5 border border-green-500/30 flex items-center justify-center shadow-lg">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>
                         </div>
                         <div>
                             <div className="flex items-center gap-3">
-                                <h2 className="font-orbitron font-black text-2xl text-white tracking-widest text-glow drop-shadow-lg leading-none">WARDROBE</h2>
+                                <h2 className="font-orbitron font-black text-2xl text-white tracking-widest leading-none">WARDROBE</h2>
                                 <button
                                     onClick={() => setIsCreatingSkin(true)}
-                                    className="px-3 py-1 rounded bg-green-500 hover:bg-green-400 text-black font-orbitron font-bold text-[10px] tracking-widest transition-all shadow-lg active:scale-95"
+                                    className="px-3 py-1 rounded bg-green-500 hover:bg-green-400 text-black font-orbitron font-bold text-[10px] tracking-widest transition-all shadow-md active:scale-95"
                                 >
                                     CREATE SKIN
                                 </button>
@@ -100,7 +100,7 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
                 </div>
 
                 {/* Main Content Area - Split Layout (Always Row for Landscape Optimization) */}
-                <div className="flex flex-row flex-1 overflow-hidden relative">
+                <div className="flex flex-row flex-1 overflow-hidden relative min-h-0">
 
                     {/* Left Panel: Worm Preview */}
                     <div className="w-[40%] text-white relative flex flex-col items-center justify-center bg-gradient-to-b from-slate-900/50 to-black/80 border-r border-white/5 p-4 lg:p-8 overflow-hidden group shrink-0">
@@ -116,25 +116,25 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
                         </div>
 
                         {/* The Wiggling Worm Component - Pushed up even more */}
-                        <WormPreview skin={selectedSkin} className="w-full h-full object-contain relative z-10 scale-90 lg:scale-100 drop-shadow-2xl -translate-y-16 lg:-translate-y-20" />
+                        <WormPreview skin={selectedSkin} className="w-full h-full object-contain relative z-10 scale-90 lg:scale-100 drop-shadow-xl -translate-y-16 lg:-translate-y-20" />
 
                         {/* Skin Name & Type */}
                         <div className="absolute bottom-4 lg:bottom-8 left-0 right-0 text-center z-20 pointer-events-none">
-                            <h3 className="font-orbitron font-bold text-xl lg:text-3xl text-white tracking-wide text-glow mb-1 lg:mb-2 drop-shadow-lg truncate px-4">
+                            <h3 className="font-orbitron font-bold text-xl lg:text-3xl text-white tracking-wide mb-1 lg:mb-2 drop-shadow-md truncate px-4">
                                 {selectedSkin.name}
                             </h3>
-                            <span className="inline-block px-2 py-0.5 lg:px-3 lg:py-1 rounded-full bg-white/5 border border-white/10 text-[10px] lg:text-xs font-rajdhani font-bold text-green-400 uppercase tracking-widest backdrop-blur-sm">
+                            <span className="inline-block px-2 py-0.5 lg:px-3 lg:py-1 rounded-full bg-white/5 border border-white/10 text-[10px] lg:text-xs font-rajdhani font-bold text-green-400 uppercase tracking-widest">
                                 {selectedSkin.type === 'composite' ? 'Premium Animated' : 'Standard Neon'}
                             </span>
                         </div>
                     </div>
 
                     {/* Right Panel: Skin Grid */}
-                    <div className="flex-1 w-[60%] bg-[#050510] flex flex-col relative overflow-hidden">
+                    <div className="flex-1 w-[60%] bg-[#050510] flex flex-col relative overflow-hidden min-h-0">
                         <div className="absolute inset-0 bg-[url('/assets/ui/noise.png')] opacity-[0.02] pointer-events-none mix-blend-overlay"></div>
 
                         {/* Scrollable Grid - Increased density (more columns, smaller cards) */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-3 lg:p-4 pb-20 lg:pb-24">
+                        <div className="flex-1 touch-scroll-y p-3 lg:p-4 pb-20 lg:pb-24 min-h-0" style={{ overflowY: 'auto', minHeight: 0, WebkitOverflowScrolling: 'touch' }}>
                             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-3">
 
                                 {allSkins.map((skin) => {
@@ -170,7 +170,7 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
                                             </div>
 
                                             {/* Info Bar */}
-                                            <div className={`relative z-10 w-full p-3 border-t backdrop-blur-sm transition-colors flex flex-col items-center gap-1 ${isSelected
+                                            <div className={`relative z-10 w-full p-3 border-t transition-colors flex flex-col items-center gap-1 ${isSelected
                                                 ? 'bg-green-500 text-black border-green-400'
                                                 : 'bg-black/60 border-white/5 text-white/70 group-hover:text-white group-hover:bg-black/80'
                                                 }`}>

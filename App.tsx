@@ -96,10 +96,23 @@ const App: React.FC = () => {
     window.addEventListener('touchstart', startMusic, true);
     window.addEventListener('keydown', startMusic, true);
 
+    // Visibility Change Handler (Pause music when backgrounded)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        audioController.stop('game');
+      } else {
+        // Only resume if we are in a state where music SHOULD play
+        // We can just request start, controller handles state
+        audioController.requestMusicStart();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       window.removeEventListener('click', startMusic, true);
       window.removeEventListener('touchstart', startMusic, true);
       window.removeEventListener('keydown', startMusic, true);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -116,7 +129,7 @@ const App: React.FC = () => {
 
   const handleGameOver = (score: number, time: number, killedBy: string, killCount: number) => {
     setLastGameStats({ score, time, killedBy, killCount });
-    adManager.showInterstitial();
+    // Don't show interstitial yet - wait for Revive outcome
     setIsReviveVisible(true); // Show Revive Modal first
   };
 
@@ -138,15 +151,18 @@ const App: React.FC = () => {
       setIsReviveVisible(false);
       gameRef.current?.revive();
     }
+    // If failed, user stays on Revive screen to try again or skip
   };
 
-  const handleSkipRevive = () => {
+  const handleSkipRevive = async () => {
     setIsReviveVisible(false);
+    // User chose not to revive (or failed) -> Show Interstitial before Game Over
+    await adManager.showInterstitial();
     setIsGameOverVisible(true);
   };
 
   const handleRestart = () => {
-    adManager.showInterstitial();
+    // No Ad on Retry/Restart - Instant Action
     setIsGameOverVisible(false);
     setReviveCost(5); // Reset revive cost
     // We can either re-mount or just signal reset
@@ -154,8 +170,9 @@ const App: React.FC = () => {
     setTimeout(() => handleStartGame(playerName, playerSkin), 50);
   };
 
-  const handleHome = () => {
-    adManager.showInterstitial();
+  const handleHome = async () => {
+    // Show Ad on Home
+    await adManager.showInterstitial();
     setIsGameOverVisible(false);
     setAppState('MENU');
   };
