@@ -7,6 +7,7 @@ import GameOverModal from './components/GameOverModal';
 import SettingsModal from './components/SettingsModal';
 import UpgradesModal from './components/UpgradesModal';
 import ReviveModal from './components/ReviveModal';
+import ShopModal from './components/ShopModal';
 import { BOT_NAMES, DEFAULT_PIT_COUNT, ALL_PIT_TYPES, DEFAULT_ARENA, UPGRADE_COSTS, MAX_UPGRADE_LEVEL, SKINS } from './constants';
 import { GameSettings, PlayerWallet, UpgradeLevels, PowerUpType, Skin } from './types';
 
@@ -42,6 +43,7 @@ const App: React.FC = () => {
   const [isGameOverVisible, setIsGameOverVisible] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isUpgradesOpen, setIsUpgradesOpen] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [playerSkin, setPlayerSkin] = useState<Skin>(SKINS[0]);
   const [lastGameStats, setLastGameStats] = useState({ score: 0, time: 0, killedBy: '', killCount: 0 });
@@ -198,6 +200,18 @@ const App: React.FC = () => {
     setUpgradeLevels(newUpgrades);
   };
 
+  const handleWatchAdGold = () => {
+    setWallet(prev => ({ ...prev, coins: prev.coins + 50 }));
+    setIsShopOpen(false);
+    audioController.play('coin', true);
+  };
+
+  const handleWatchAdDiamond = () => {
+    setWallet(prev => ({ ...prev, diamonds: prev.diamonds + 2 }));
+    setIsShopOpen(false);
+    audioController.play('coin', true);
+  };
+
   return (
     <div className="w-full h-screen bg-slate-900 overflow-hidden relative">
       {appState === 'MENU' && (
@@ -209,6 +223,7 @@ const App: React.FC = () => {
           wallet={wallet}
           customSkins={customSkins}
           onAddCustomSkin={handleAddCustomSkin}
+          onOpenShop={() => setIsShopOpen(true)}
         />
       )}
 
@@ -266,6 +281,13 @@ const App: React.FC = () => {
         wallet={wallet}
         upgradeLevels={upgradeLevels}
         onUpgrade={handleUpgrade}
+      />
+
+      <ShopModal
+        isOpen={isShopOpen}
+        onClose={() => setIsShopOpen(false)}
+        onWatchAdGold={handleWatchAdGold}
+        onWatchAdDiamond={handleWatchAdDiamond}
       />
     </div>
   );

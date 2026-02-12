@@ -12,6 +12,7 @@ interface MainMenuProps {
   wallet?: PlayerWallet;
   customSkins?: Skin[];
   onAddCustomSkin?: (skin: Skin, cost: { type: 'coins' | 'diamonds', amount: number }) => void;
+  onOpenShop?: () => void;
 }
 
 const MainMenu: React.FC<MainMenuProps> = ({
@@ -21,7 +22,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
   onOpenUpgrades,
   wallet,
   customSkins = [],
-  onAddCustomSkin
+  onAddCustomSkin,
+  onOpenShop
 }) => {
   const [name, setName] = useState('');
   const [selectedSkin, setSelectedSkin] = useState<Skin>(() => {
@@ -526,14 +528,20 @@ const MainMenu: React.FC<MainMenuProps> = ({
             <div className="flex items-center gap-2 drop-shadow-lg">
               <img src="/assets/ui/diamond_3d.svg" alt="Diamond" className="w-10 h-10 object-contain drop-shadow-md" />
               <span className="font-orbitron font-black text-2xl text-red-500 tracking-wider shadow-black drop-shadow-sm">{wallet.diamonds.toLocaleString()}</span>
-              <button className="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] flex items-center justify-center font-bold shadow-sm hover:bg-blue-400 transition-colors transform translate-y-0.5">+</button>
+              <button
+                onClick={onOpenShop}
+                className="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] flex items-center justify-center font-bold shadow-sm hover:bg-blue-400 transition-colors transform translate-y-0.5"
+              >+</button>
             </div>
 
             {/* Coins - Clearer */}
             <div className="flex items-center gap-2 drop-shadow-lg">
               <img src="/assets/ui/coin.svg" alt="Coin" className="w-9 h-9 object-contain drop-shadow-md" />
               <span className="font-orbitron font-black text-2xl text-yellow-400 tracking-wider shadow-black drop-shadow-sm">{wallet.coins.toLocaleString()}</span>
-              <button className="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] flex items-center justify-center font-bold shadow-sm hover:bg-blue-400 transition-colors transform translate-y-0.5">+</button>
+              <button
+                onClick={onOpenShop}
+                className="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] flex items-center justify-center font-bold shadow-sm hover:bg-blue-400 transition-colors transform translate-y-0.5"
+              >+</button>
             </div>
           </div>
         </div>
