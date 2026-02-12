@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Muffin liner -->
+  <path d="M16 34 L20 56 L44 56 L48 34 Z" fill="#78909C" stroke="#607D8B" stroke-width="1"/>
+  <path d="M16 34 L19 40 L22 34 L25 40 L28 34 L31 40 L34 34 L37 40 L40 34 L43 40 L46 34 L48 38 L48 34" fill="none" stroke="#607D8B" stroke-width="1"/>
+  <!-- Muffin top -->
+  <path d="M12 34 Q10 18 22 14 Q32 10 42 14 Q54 18 52 34 Z" fill="#D4A055" stroke="#B8863C" stroke-width="1.5"/>
+  <!-- Muffin cracks -->
+  <path d="M26 18 Q28 26 26 32" fill="none" stroke="#B8863C" stroke-width="1" opacity="0.5"/>
+  <path d="M38 16 Q36 24 38 30" fill="none" stroke="#B8863C" stroke-width="1" opacity="0.5"/>
+  <!-- Blueberries -->
+  <circle cx="22" cy="24" r="3" fill="#5C6BC0"/>
+  <circle cx="34" cy="20" r="3" fill="#5C6BC0"/>
+  <circle cx="42" cy="26" r="2.5" fill="#5C6BC0"/>
+  <circle cx="28" cy="28" r="2.5" fill="#5C6BC0"/>
+</svg>

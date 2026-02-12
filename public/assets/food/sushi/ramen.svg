@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bowl -->
+  <path d="M4 30 Q4 56 32 56 Q60 56 60 30 Z" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
+  <path d="M4 30 L60 30" stroke="#42A5F5" stroke-width="2"/>
+  <path d="M6 34 L58 34" stroke="#42A5F5" stroke-width="1" opacity="0.3"/>
+  <!-- Broth -->
+  <path d="M8 30 Q8 50 32 50 Q56 50 56 30 Z" fill="#FFCC80" opacity="0.5"/>
+  <!-- Noodles -->
+  <path d="M16 36 Q20 44 28 36 Q32 28 36 36 Q40 44 48 36" fill="none" stroke="#FFF9C4" stroke-width="3" stroke-linecap="round"/>
+  <path d="M14 40 Q18 48 26 40 Q30 32 34 40 Q38 48 46 40" fill="none" stroke="#FFF9C4" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Egg half -->
+  <ellipse cx="44" cy="28" rx="7" ry="5" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  <circle cx="44" cy="28" r="3" fill="#FFD54F"/>
+  <!-- Nori -->
+  <rect x="12" y="26" width="8" height="12" rx="1" fill="#2E7D32" opacity="0.8"/>
+  <!-- Green onion -->
+  <circle cx="28" cy="28" r="2" fill="#66BB6A"/>
+  <circle cx="34" cy="26" r="1.5" fill="#66BB6A"/>
+  <!-- Chopsticks -->
+  <line x1="48" y1="8" x2="38" y2="30" stroke="#8D6E63" stroke-width="2" stroke-linecap="round"/>
+  <line x1="52" y1="8" x2="42" y2="30" stroke="#8D6E63" stroke-width="2" stroke-linecap="round"/>
+</svg>

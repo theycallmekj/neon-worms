@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shrimp tail -->
+  <path d="M20 16 Q12 20 10 28 Q8 36 12 40 Q16 44 24 44" fill="#FF8A65" stroke="#F4511E" stroke-width="1.5"/>
+  <!-- Shrimp body segments -->
+  <path d="M24 44 Q28 42 32 44 Q36 42 40 44 Q44 42 48 44 Q52 42 54 40" fill="none" stroke="#FF8A65" stroke-width="8" stroke-linecap="round"/>
+  <!-- Batter coating -->
+  <path d="M22 38 Q20 48 28 52 Q36 56 44 52 Q52 48 54 40 Q56 36 52 34 Q48 38 42 40 Q36 42 30 40 Q24 38 22 38 Z" fill="#FFD54F" stroke="#F5C842" stroke-width="1"/>
+  <!-- Crispy texture -->
+  <path d="M28 46 Q32 44 36 46" fill="none" stroke="#D4A632" stroke-width="1" opacity="0.4"/>
+  <path d="M36 48 Q40 46 44 48" fill="none" stroke="#D4A632" stroke-width="1" opacity="0.4"/>
+  <!-- Shrimp tail fan -->
+  <path d="M18 14 Q14 10 18 8 Q22 6 24 10 M18 14 Q20 8 24 10" fill="#FF7043" stroke="#E64A19" stroke-width="1"/>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="shg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ce93d8"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#4a148c"/>
+    </linearGradient>
+    <filter id="shf"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#8b5cf6" flood-opacity=".5"/></filter>
+  </defs>
+  <!-- Shield shape -->
+  <path d="M32,4 L56,16 L56,32 Q56,52 32,60 Q8,52 8,32 L8,16 Z" fill="url(#shg)" stroke="#6a1b9a" stroke-width="2" filter="url(#shf)"/>
+  <!-- Inner shield -->
+  <path d="M32,12 L48,21 L48,32 Q48,47 32,53 Q16,47 16,32 L16,21 Z" fill="#9c27b0" opacity=".4"/>
+  <!-- Star emblem -->
+  <polygon points="32,20 35,28 43,28 37,33 39,41 32,36 25,41 27,33 21,28 29,28" fill="#e1bee7" opacity=".8"/>
+  <!-- Shine -->
+  <ellipse cx="22" cy="22" rx="5" ry="3" fill="white" opacity=".3" transform="rotate(-20 22 22)"/>
+</svg>

@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Corn cob -->
+  <path d="M16 12 Q16 52 32 56 Q48 52 48 12 Z" fill="#FFD54F" stroke="#F5C842" stroke-width="1"/>
+  <!-- Corn kernels rows -->
+  <g fill="#FFCA28" stroke="#F5C842" stroke-width="0.5">
+    <circle cx="24" cy="18" r="3"/><circle cx="32" cy="18" r="3"/><circle cx="40" cy="18" r="3"/>
+    <circle cx="24" cy="26" r="3"/><circle cx="32" cy="26" r="3"/><circle cx="40" cy="26" r="3"/>
+    <circle cx="24" cy="34" r="3"/><circle cx="32" cy="34" r="3"/><circle cx="40" cy="34" r="3"/>
+    <circle cx="26" cy="42" r="3"/><circle cx="34" cy="42" r="3"/><circle cx="38" cy="42" r="2.5"/>
+    <circle cx="30" cy="48" r="2.5"/><circle cx="36" cy="48" r="2"/>
+  </g>
+  <!-- Stick -->
+  <rect x="29" y="54" width="6" height="8" rx="2" fill="#8D6E63"/>
+  <!-- Husk leaves on sides -->
+  <path d="M16 16 Q10 20 8 28 Q10 24 16 22" fill="#66BB6A" stroke="#4CAF50" stroke-width="0.5"/>
+  <path d="M48 16 Q54 20 56 28 Q54 24 48 22" fill="#66BB6A" stroke="#4CAF50" stroke-width="0.5"/>
+</svg>

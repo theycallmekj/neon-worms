@@ -1,0 +1,12 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rice ball -->
+  <path d="M10 28 Q10 50 32 50 Q54 50 54 28 Z" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  <rect x="10" y="26" width="44" height="6" rx="3" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  <!-- Fish on top -->
+  <path d="M8 26 Q8 14 32 14 Q56 14 56 26 Z" fill="#FF7043" stroke="#F4511E" stroke-width="1"/>
+  <!-- Fish texture lines -->
+  <line x1="16" y1="20" x2="48" y2="20" stroke="#FFAB91" stroke-width="1" opacity="0.5"/>
+  <line x1="14" y1="24" x2="50" y2="24" stroke="#FFAB91" stroke-width="1" opacity="0.5"/>
+  <!-- Highlight on fish -->
+  <path d="M18 16 Q28 14 38 16" fill="none" stroke="#FFCCBC" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+</svg>

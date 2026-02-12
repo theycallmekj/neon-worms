@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gyoza body -->
+  <path d="M8 36 Q8 24 32 24 Q56 24 56 36 Q56 48 32 48 Q8 48 8 36 Z" fill="#FFF9C4" stroke="#F5C842" stroke-width="1.5"/>
+  <!-- Crimped top edge -->
+  <path d="M10 34 Q14 26 20 32 Q24 24 30 30 Q34 24 38 30 Q42 24 46 32 Q50 26 54 34" fill="none" stroke="#D4A632" stroke-width="2" stroke-linecap="round"/>
+  <!-- Pan-fried bottom -->
+  <path d="M12 40 Q12 48 32 48 Q52 48 52 40 Z" fill="#D4A055" opacity="0.4"/>
+  <!-- Highlight -->
+  <ellipse cx="26" cy="38" rx="8" ry="4" fill="#FFFFFF" opacity="0.3"/>
+  <!-- Sauce spots -->
+  <circle cx="24" cy="54" r="3" fill="#5D4037" opacity="0.6"/>
+  <circle cx="40" cy="56" r="2" fill="#5D4037" opacity="0.6"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow-cyan" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#00ffff" flood-opacity="0.8"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <circle cx="32" cy="32" r="28" fill="#e0ffff" fill-opacity="0.1"/>
+  <path d="M32 4V60M4 32H60M12 12L52 52M12 52L52 12" stroke="#00ffff" stroke-width="4" stroke-linecap="round" filter="url(#glow-cyan)"/>
+  <circle cx="32" cy="32" r="8" fill="#e0ffff"/>
+</svg>

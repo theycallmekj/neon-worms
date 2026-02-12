@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#ff4444" flood-opacity="0.8"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M16 20V32C16 40.8366 23.1634 48 32 48C40.8366 48 48 40.8366 48 32V20" stroke="#ff4444" stroke-width="8" stroke-linecap="round" filter="url(#glow-red)"/>
+  <path d="M16 20H24V32C24 36.4183 27.5817 40 32 40C36.4183 40 40 36.4183 40 32V20H48" fill="#ffcccc" fill-opacity="0.2"/>
+  <rect x="12" y="12" width="12" height="12" rx="2" fill="#eeeeee"/>
+  <rect x="40" y="12" width="12" height="12" rx="2" fill="#eeeeee"/>
+</svg>

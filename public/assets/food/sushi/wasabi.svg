@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Wasabi mound -->
+  <path d="M12 48 Q12 28 32 20 Q52 28 52 48 Z" fill="#7CB342" stroke="#558B2F" stroke-width="1.5"/>
+  <!-- Wasabi texture/ridges -->
+  <path d="M20 40 Q26 34 32 38" fill="none" stroke="#558B2F" stroke-width="1.5" opacity="0.4"/>
+  <path d="M32 38 Q38 32 44 38" fill="none" stroke="#558B2F" stroke-width="1.5" opacity="0.4"/>
+  <path d="M24 46 Q30 42 36 46" fill="none" stroke="#558B2F" stroke-width="1" opacity="0.3"/>
+  <!-- Top peak -->
+  <path d="M30 22 Q32 18 34 22" fill="#8BC34A" stroke="#7CB342" stroke-width="0.5"/>
+  <!-- Highlight -->
+  <path d="M22 32 Q28 28 34 32" fill="none" stroke="#AED581" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+  <!-- Grated texture dots -->
+  <circle cx="24" cy="36" r="1" fill="#558B2F" opacity="0.3"/>
+  <circle cx="36" cy="34" r="1" fill="#558B2F" opacity="0.3"/>
+  <circle cx="40" cy="42" r="1" fill="#558B2F" opacity="0.3"/>
+  <circle cx="28" cy="44" r="1" fill="#558B2F" opacity="0.3"/>
+</svg>

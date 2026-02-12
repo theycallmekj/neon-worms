@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="fishGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF7F50;stop-opacity:1" /> <!-- Coral -->
+      <stop offset="100%" style="stop-color:#FF4500;stop-opacity:1" /> <!-- OrangeRed -->
+    </linearGradient>
+
+    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="15" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Aura -->
+  <circle cx="256" cy="256" r="230" fill="#FF4500" opacity="0.1" filter="url(#neonGlow)"/>
+
+  <!-- Rice (Glowing White) -->
+  <ellipse cx="256" cy="300" rx="140" ry="90" fill="#F0F8FF" stroke="#ADD8E6" stroke-width="10" filter="url(#neonGlow)"/>
+
+  <!-- Fish Slab -->
+  <path d="M140,260 Q256,120 372,260 Q400,290 350,340 Q256,380 162,340 Q110,290 140,260" 
+        fill="url(#fishGrad)" stroke="#fff" stroke-width="8" filter="url(#neonGlow)"/>
+
+  <!-- Fish Fat Stripes -->
+  <path d="M180,250 Q256,200 330,250" stroke="#FFF5EE" stroke-width="8" fill="none" opacity="0.7"/>
+  <path d="M180,290 Q256,240 330,290" stroke="#FFF5EE" stroke-width="8" fill="none" opacity="0.7"/>
+
+  <!-- Seaweed Belt (Black w/ Green Glow) -->
+  <rect x="236" y="220" width="40" height="140" fill="#111" stroke="#00FF00" stroke-width="4" filter="url(#neonGlow)"/>
+  
+  <!-- Chopsticks (Decoration) -->
+  <line x1="50" y1="450" x2="150" y2="350" stroke="#DEB887" stroke-width="10" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="35" cy="50" r="4" fill="black"/>
+  <circle cx="65" cy="50" r="4" fill="black"/>
+  <path d="M30 46 L40 48" stroke="black" stroke-width="1"/> <!-- Eyebrow -->
+  <path d="M70 46 L60 48" stroke="black" stroke-width="1"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stick -->
+  <rect x="30" y="36" width="4" height="24" rx="1" fill="#8D6E63" stroke="#6D4C41" stroke-width="0.5"/>
+  <!-- Meat chunks -->
+  <rect x="18" y="10" width="28" height="10" rx="3" fill="#8D6E63" stroke="#6D4C41" stroke-width="1"/>
+  <rect x="18" y="22" width="28" height="10" rx="3" fill="#A1887F" stroke="#6D4C41" stroke-width="1"/>
+  <rect x="18" y="34" width="28" height="8" rx="3" fill="#8D6E63" stroke="#6D4C41" stroke-width="1"/>
+  <!-- Grill marks -->
+  <line x1="22" y1="14" x2="42" y2="14" stroke="#5D4037" stroke-width="1.5" opacity="0.5"/>
+  <line x1="22" y1="26" x2="42" y2="26" stroke="#5D4037" stroke-width="1.5" opacity="0.5"/>
+  <!-- Sauce drip -->
+  <path d="M22 18 Q26 20 30 18 Q34 16 38 18" fill="none" stroke="#E53935" stroke-width="1.5" opacity="0.7"/>
+  <!-- Herbs -->
+  <circle cx="24" cy="30" r="1.5" fill="#4CAF50"/>
+  <circle cx="36" cy="28" r="1.5" fill="#4CAF50"/>
+</svg>

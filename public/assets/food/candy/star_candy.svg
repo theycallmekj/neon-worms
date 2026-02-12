@@ -1,0 +1,8 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Star shape -->
+  <path d="M32 4 L38 24 L58 24 L42 36 L48 56 L32 44 L16 56 L22 36 L6 24 L26 24 Z" fill="#FFD54F" stroke="#F5C842" stroke-width="1.5"/>
+  <!-- Inner star highlight -->
+  <path d="M32 12 L36 26 L50 26 L38 34 L42 48 L32 40 L22 48 L26 34 L14 26 L28 26 Z" fill="#FFEE58" opacity="0.5"/>
+  <!-- Sparkle -->
+  <circle cx="28" cy="28" r="2" fill="#FFFFFF" opacity="0.5"/>
+</svg>

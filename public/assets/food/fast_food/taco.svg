@@ -1,0 +1,14 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Taco shell -->
+  <path d="M6 44 Q6 16 32 16 Q58 16 58 44 Z" fill="#F5C842" stroke="#D4A632" stroke-width="1.5"/>
+  <!-- Meat -->
+  <path d="M12 44 Q12 26 32 26 Q52 26 52 44 Z" fill="#8D6E63"/>
+  <!-- Lettuce -->
+  <path d="M10 44 Q16 34 22 38 Q28 30 32 36 Q38 30 42 38 Q48 34 54 44 Z" fill="#4CAF50"/>
+  <!-- Tomato bits -->
+  <circle cx="22" cy="38" r="3" fill="#E53935"/>
+  <circle cx="36" cy="36" r="2.5" fill="#E53935"/>
+  <circle cx="46" cy="40" r="2" fill="#E53935"/>
+  <!-- Cheese -->
+  <path d="M14 44 L18 36 L22 44 L26 38 L30 44 L34 36 L38 44 L42 38 L46 44 L50 38 L54 44" fill="#FFD54F" opacity="0.8"/>
+</svg>

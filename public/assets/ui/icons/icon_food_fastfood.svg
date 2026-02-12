@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bunGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" /> <!-- Gold -->
+      <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" /> <!-- Dark Orange -->
+    </linearGradient>
+    
+    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="15" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Aura -->
+  <circle cx="256" cy="256" r="230" fill="#FF8C00" opacity="0.15" filter="url(#neonGlow)"/>
+
+  <!-- Top Bun -->
+  <path d="M106,200 Q256,20 406,200" fill="none" stroke="url(#bunGrad)" stroke-width="20" stroke-linecap="round" filter="url(#neonGlow)"/>
+  <path d="M116,200 Q256,40 396,200" fill="url(#bunGrad)" opacity="0.4" />
+
+  <!-- Lettuce (Neon Green) -->
+  <path d="M96,220 Q150,260 200,220 T300,220 T416,220" fill="none" stroke="#00FF00" stroke-width="15" stroke-linecap="round" filter="url(#neonGlow)"/>
+  
+  <!-- Cheese (Melting) -->
+  <path d="M110,250 L400,250 L380,280 L350,260 L320,290 L200,260 L110,250" fill="#FFFF00" opacity="0.8" filter="url(#neonGlow)"/>
+
+  <!-- Patty (Neon Red/Brown) -->
+  <rect x="106" y="270" width="300" height="50" rx="15" fill="#FF4500" stroke="#FF0000" stroke-width="5" filter="url(#neonGlow)"/>
+
+  <!-- Bottom Bun -->
+  <path d="M106,340 Q106,420 256,420 Q406,420 406,340" fill="none" stroke="url(#bunGrad)" stroke-width="20" stroke-linecap="round" filter="url(#neonGlow)"/>
+  <path d="M120,340 Q120,400 256,400 Q390,400 390,340" fill="url(#bunGrad)" opacity="0.4"/>
+
+  <!-- Sesame Seeds (Bright White) -->
+  <g fill="#fff" filter="url(#neonGlow)">
+    <circle cx="200" cy="140" r="8" />
+    <circle cx="260" cy="110" r="8" />
+    <circle cx="320" cy="140" r="8" />
+    <circle cx="150" cy="170" r="8" />
+    <circle cx="360" cy="170" r="8" />
+  </g>
+</svg>

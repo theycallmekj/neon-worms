@@ -1,0 +1,14 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cupcake liner -->
+  <path d="M14 36 L18 58 L46 58 L50 36 Z" fill="#8D6E63" stroke="#6D4C41" stroke-width="1"/>
+  <!-- Liner ridges -->
+  <path d="M14 36 L16 42 L20 36 L24 42 L28 36 L32 42 L36 36 L40 42 L44 36 L48 42 L50 36" fill="none" stroke="#6D4C41" stroke-width="1"/>
+  <!-- Cake body -->
+  <path d="M16 36 Q16 28 32 28 Q48 28 48 36 Z" fill="#FFCC80"/>
+  <!-- Frosting -->
+  <path d="M14 28 Q18 14 24 22 Q28 12 32 18 Q36 10 40 20 Q44 14 50 28 Z" fill="#F48FB1" stroke="#EC407A" stroke-width="1"/>
+  <!-- Cherry on top -->
+  <circle cx="32" cy="12" r="5" fill="#E53935" stroke="#C62828" stroke-width="1"/>
+  <circle cx="30" cy="10" r="1.5" fill="#FFFFFF" opacity="0.5"/>
+  <path d="M32 7 Q34 3 36 4" fill="none" stroke="#4CAF50" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,18 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bao bun -->
+  <path d="M10 36 Q10 14 32 14 Q54 14 54 36 Q54 52 32 52 Q10 52 10 36 Z" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
+  <!-- Top fold -->
+  <path d="M26 16 Q32 10 38 16" fill="none" stroke="#BDBDBD" stroke-width="2" stroke-linecap="round"/>
+  <!-- Pinch marks radiating from top -->
+  <path d="M28 18 Q30 14 32 18" fill="none" stroke="#BDBDBD" stroke-width="1"/>
+  <path d="M32 18 Q34 14 36 18" fill="none" stroke="#BDBDBD" stroke-width="1"/>
+  <!-- Side fold lines -->
+  <path d="M18 30 Q24 26 30 32" fill="none" stroke="#E0E0E0" stroke-width="1" opacity="0.6"/>
+  <path d="M34 32 Q40 26 46 30" fill="none" stroke="#E0E0E0" stroke-width="1" opacity="0.6"/>
+  <!-- Highlight -->
+  <ellipse cx="24" cy="34" rx="8" ry="5" fill="#FFFFFF" opacity="0.5"/>
+  <!-- Steam lines -->
+  <path d="M26 8 Q28 4 26 0" fill="none" stroke="#BDBDBD" stroke-width="1" opacity="0.4" stroke-linecap="round"/>
+  <path d="M32 6 Q34 2 32 -2" fill="none" stroke="#BDBDBD" stroke-width="1" opacity="0.4" stroke-linecap="round"/>
+  <path d="M38 8 Q40 4 38 0" fill="none" stroke="#BDBDBD" stroke-width="1" opacity="0.4" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,83 @@
+<svg width="500" height="200" viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+      <feOffset dx="2" dy="2" result="offsetblur" />
+      <feComponentTransfer><feFuncA type="linear" slope="0.5" /></feComponentTransfer>
+      <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Row 0 -->
+  <g transform="translate(50, 50)" filter="url(#shadow)">
+    <!-- Taco -->
+    <path d="M-40 10 Q-40 -30 0 -30 Q40 -30 40 10 Z" fill="#fbbf24" stroke="#FFF" stroke-width="2" />
+    <path d="M-35 0 L35 0 Q20 15 0 15 Q-20 15 -35 0" fill="#4ade80" />
+    <circle cx="-10" cy="-10" r="3" fill="black" /><circle cx="10" cy="-10" r="3" fill="black" />
+  </g>
+
+  <g transform="translate(150, 50)" filter="url(#shadow)">
+    <!-- Kebab / Wrap -->
+    <rect x="-20" y="-35" width="40" height="70" fill="#fef3c7" rx="15" stroke="#FFF" stroke-width="2" />
+    <path d="M-20 -10 L20 -10 L20 0 L-20 0 Z" fill="#92400e" />
+    <circle cx="-10" cy="-20" r="3" fill="black" /><circle cx="10" cy="-20" r="3" fill="black" />
+  </g>
+
+  <g transform="translate(250, 50)" filter="url(#shadow)">
+    <!-- Pretzel -->
+    <path d="M-35 10 Q0 -40 35 10 C35 30 15 35 0 15 C-15 35 -35 30 -35 10" fill="none" stroke="#d97706" stroke-width="12" stroke-linecap="round" />
+    <path d="M-35 10 Q0 -40 35 10 C35 30 15 35 0 15 C-15 35 -35 30 -35 10" fill="none" stroke="#FFF" stroke-width="2" stroke-linecap="round" opacity="0.5" />
+    <circle cx="-10" cy="-5" r="3" fill="black" /><circle cx="10" cy="-5" r="3" fill="black" />
+  </g>
+
+  <g transform="translate(350, 50)" filter="url(#shadow)">
+    <!-- Skewer -->
+    <rect x="-2" y="-45" width="4" height="90" fill="#d97706" />
+    <rect x="-20" y="-25" width="40" height="20" fill="#ef4444" rx="5" stroke="#FFF" stroke-width="2" />
+    <rect x="-20" y="5" width="40" height="20" fill="#f59e0b" rx="5" stroke="#FFF" stroke-width="2" />
+    <circle cx="-10" cy="-15" r="3" fill="black" /><circle cx="10" cy="-15" r="3" fill="black" />
+  </g>
+
+  <g transform="translate(450, 50)" filter="url(#shadow)">
+    <!-- Dumpling -->
+    <path d="M-35 25 Q-35 -15 0 -15 Q35 -15 35 25 Z" fill="#FEF3C7" stroke="#FFF" stroke-width="2" />
+    <path d="M-35 25 L35 25" stroke="#d97706" stroke-width="2" />
+    <circle cx="-10" cy="5" r="3" fill="black" /><circle cx="10" cy="5" r="3" fill="black" />
+  </g>
+
+  <!-- Row 1 -->
+  <g transform="translate(50, 150)" filter="url(#shadow)">
+    <!-- Falafel Ball -->
+    <circle cx="0" cy="0" r="30" fill="#92400e" stroke="#FFF" stroke-width="2" />
+    <circle cx="-10" cy="-5" r="4" fill="black" /><circle cx="10" cy="-5" r="4" fill="black" />
+    <rect x="-20" y="10" width="40" height="10" fill="#4ade80" opacity="0.3" rx="5" />
+  </g>
+
+  <g transform="translate(150, 150)" filter="url(#shadow)">
+    <!-- Quesadilla -->
+    <path d="M-40 20 L40 20 Q0 -40 -40 20" fill="#fbbf24" stroke="#FFF" stroke-width="2" />
+    <circle cx="-15" cy="0" r="3" fill="black" /><circle cx="10" cy="0" r="3" fill="black" />
+  </g>
+
+  <g transform="translate(250, 150)" filter="url(#shadow)">
+    <!-- Corn on Cob -->
+    <rect x="-15" y="-30" width="30" height="60" fill="#fbbf24" rx="15" stroke="#FFF" stroke-width="2" />
+    <path d="M-15 30 L0 50 L15 30 Z" fill="#4ade80" />
+    <circle cx="-7" cy="-10" r="3" fill="black" /><circle cx="7" cy="-10" r="3" fill="black" />
+  </g>
+
+  <g transform="translate(350, 150)" filter="url(#shadow)">
+    <!-- Bao Bun -->
+    <path d="M-35 25 Q0 -40 35 25 Z" fill="#fff" stroke="#94a3b8" stroke-width="2" />
+    <circle cx="-10" cy="0" r="3" fill="black" /><circle cx="10" cy="0" r="3" fill="black" />
+    <path d="M-5 10 Q0 15 5 10" fill="none" stroke="black" stroke-width="2" />
+  </g>
+
+  <g transform="translate(450, 150)" filter="url(#shadow)">
+    <!-- Satay -->
+    <path d="M-5 -45 L5 45" stroke="#d97706" stroke-width="4" />
+    <circle cx="0" cy="-20" r="15" fill="#d97706" stroke="#FFF" stroke-width="2" />
+    <circle cx="0" cy="10" r="15" fill="#d97706" stroke="#FFF" stroke-width="2" />
+    <circle cx="-5" cy="-20" r="3" fill="black" /><circle cx="5" cy="-20" r="3" fill="black" />
+  </g>
+</svg>

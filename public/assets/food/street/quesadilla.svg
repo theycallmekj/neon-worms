@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tortilla -->
+  <path d="M6 20 Q6 48 32 48 Q58 48 58 20 Z" fill="#FDEBD0" stroke="#D4A632" stroke-width="1.5"/>
+  <!-- Cheese filling -->
+  <path d="M10 22 L54 22 L54 26 Q48 24 42 26 Q36 24 30 26 Q24 24 18 26 Q12 24 10 26 Z" fill="#FFD54F"/>
+  <!-- Grill marks on tortilla -->
+  <line x1="12" y1="30" x2="52" y2="30" stroke="#D4A632" stroke-width="1.5" opacity="0.3"/>
+  <line x1="14" y1="36" x2="50" y2="36" stroke="#D4A632" stroke-width="1.5" opacity="0.3"/>
+  <line x1="16" y1="42" x2="48" y2="42" stroke="#D4A632" stroke-width="1.5" opacity="0.3"/>
+  <!-- Salsa/toppings visible -->
+  <circle cx="22" cy="26" r="2" fill="#E53935"/>
+  <circle cx="38" cy="24" r="2" fill="#4CAF50"/>
+  <circle cx="46" cy="26" r="1.5" fill="#E53935"/>
+  <!-- Cheese drip -->
+  <path d="M18 48 L20 52 M30 48 L30 54 M44 48 L42 52" stroke="#FFD54F" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gummy bear body -->
+  <path d="M20 24 Q20 42 32 48 Q44 42 44 24 Z" fill="#EF5350" stroke="#C62828" stroke-width="1"/>
+  <!-- Head -->
+  <circle cx="32" cy="20" r="12" fill="#EF5350" stroke="#C62828" stroke-width="1"/>
+  <!-- Ears -->
+  <circle cx="22" cy="12" r="5" fill="#EF5350" stroke="#C62828" stroke-width="1"/>
+  <circle cx="42" cy="12" r="5" fill="#EF5350" stroke="#C62828" stroke-width="1"/>
+  <!-- Arms -->
+  <ellipse cx="16" cy="30" rx="5" ry="8" fill="#EF5350" stroke="#C62828" stroke-width="1"/>
+  <ellipse cx="48" cy="30" rx="5" ry="8" fill="#EF5350" stroke="#C62828" stroke-width="1"/>
+  <!-- Legs -->
+  <ellipse cx="26" cy="52" rx="5" ry="7" fill="#EF5350" stroke="#C62828" stroke-width="1"/>
+  <ellipse cx="38" cy="52" rx="5" ry="7" fill="#EF5350" stroke="#C62828" stroke-width="1"/>
+  <!-- Belly highlight -->
+  <ellipse cx="32" cy="34" rx="6" ry="8" fill="#FFFFFF" opacity="0.2"/>
+  <!-- Eyes -->
+  <circle cx="28" cy="18" r="2" fill="#FFFFFF"/>
+  <circle cx="36" cy="18" r="2" fill="#FFFFFF"/>
+  <circle cx="28" cy="18" r="1" fill="#1a1a1a"/>
+  <circle cx="36" cy="18" r="1" fill="#1a1a1a"/>
+</svg>

@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Donut body -->
+  <circle cx="32" cy="32" r="24" fill="#F5A623" stroke="#D4891A" stroke-width="1.5"/>
+  <!-- Donut hole -->
+  <circle cx="32" cy="32" r="9" fill="white" stroke="#D4891A" stroke-width="1"/>
+  <!-- Pink frosting -->
+  <path d="M8 30 Q10 20 18 14 Q26 8 36 10 Q46 8 52 16 Q58 22 56 32 Q56 28 50 22 Q44 14 36 16 Q28 14 20 20 Q14 26 12 30 Z" fill="#F48FB1" stroke="#EC407A" stroke-width="1"/>
+  <!-- Sprinkles -->
+  <rect x="18" y="16" width="5" height="2" rx="1" fill="#FF7043" transform="rotate(-30 18 16)"/>
+  <rect x="28" y="12" width="5" height="2" rx="1" fill="#42A5F5" transform="rotate(20 28 12)"/>
+  <rect x="40" y="14" width="5" height="2" rx="1" fill="#66BB6A" transform="rotate(-15 40 14)"/>
+  <rect x="48" y="22" width="5" height="2" rx="1" fill="#FFEE58" transform="rotate(45 48 22)"/>
+  <rect x="24" y="18" width="4" height="2" rx="1" fill="#AB47BC" transform="rotate(-45 24 18)"/>
+  <rect x="44" y="18" width="4" height="2" rx="1" fill="#FF7043" transform="rotate(10 44 18)"/>
+</svg>

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="50%" stop-color="#00bcd4"/>
+      <stop offset="100%" stop-color="#0097a7"/>
+    </linearGradient>
+    <linearGradient id="headGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4dd0e1"/>
+      <stop offset="100%" stop-color="#00838f"/>
+    </linearGradient>
+    <filter id="neonGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background glow -->
+  <circle cx="100" cy="100" r="90" fill="url(#glow)"/>
+
+  <!-- Worm body - S-curve -->
+  <g filter="url(#neonGlow)">
+    <!-- Tail segment -->
+    <circle cx="45" cy="130" r="12" fill="#0097a7" opacity="0.7"/>
+    <!-- Body segments -->
+    <circle cx="60" cy="118" r="14" fill="#0097a7"/>
+    <circle cx="78" cy="110" r="15" fill="#00acc1"/>
+    <circle cx="95" cy="108" r="16" fill="#00bcd4"/>
+    <circle cx="112" cy="112" r="17" fill="#00bcd4"/>
+    <circle cx="126" cy="120" r="17" fill="#00e5ff"/>
+    <circle cx="136" cy="108" r="17" fill="#00e5ff"/>
+    <circle cx="140" cy="92" r="18" fill="#26c6da"/>
+
+    <!-- Head -->
+    <circle cx="140" cy="75" r="24" fill="url(#headGrad)" filter="url(#softGlow)"/>
+    
+    <!-- Eyes -->
+    <ellipse cx="133" cy="68" rx="7" ry="8" fill="white"/>
+    <ellipse cx="149" cy="68" rx="7" ry="8" fill="white"/>
+    
+    <!-- Pupils -->
+    <circle cx="135" cy="67" r="4" fill="#1a237e"/>
+    <circle cx="151" cy="67" r="4" fill="#1a237e"/>
+    
+    <!-- Eye shine -->
+    <circle cx="133" cy="65" r="2" fill="white" opacity="0.9"/>
+    <circle cx="149" cy="65" r="2" fill="white" opacity="0.9"/>
+
+    <!-- Smile -->
+    <path d="M132 80 Q141 88 150 80" stroke="#1a237e" stroke-width="2" fill="none" stroke-linecap="round"/>
+    
+    <!-- Blush -->
+    <ellipse cx="127" cy="78" rx="5" ry="3" fill="#ff6b9d" opacity="0.3"/>
+    <ellipse cx="155" cy="78" rx="5" ry="3" fill="#ff6b9d" opacity="0.3"/>
+  </g>
+
+  <!-- Crown / sparkle on head -->
+  <g filter="url(#neonGlow)">
+    <polygon points="140,48 143,55 150,55 145,60 147,67 140,63 133,67 135,60 130,55 137,55" fill="#ffd700" opacity="0.8"/>
+  </g>
+
+  <!-- Small sparkles around -->
+  <g fill="#00e5ff" opacity="0.6">
+    <circle cx="30" cy="60" r="2"/>
+    <circle cx="170" cy="50" r="2.5"/>
+    <circle cx="25" cy="150" r="1.5"/>
+    <circle cx="175" cy="140" r="2"/>
+    <circle cx="60" cy="40" r="1.5"/>
+    <circle cx="160" cy="160" r="1.5"/>
+  </g>
+</svg>

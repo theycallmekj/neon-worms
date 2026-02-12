@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Game theme colors -->
+    <color name="colorPrimary">#06B6D4</color>
+    <color name="colorPrimaryDark">#0f172a</color>
+    <color name="colorAccent">#8B5CF6</color>
+    
+    <!-- Status bar & Navigation -->
+    <color name="statusBarColor">#0f172a</color>
+    <color name="navigationBarColor">#0f172a</color>
+    
+    <!-- Background -->
+    <color name="splashBackground">#0f172a</color>
+</resources>

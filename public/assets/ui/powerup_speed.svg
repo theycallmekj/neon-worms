@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff176"/>
+      <stop offset="100%" stop-color="#f57f17"/>
+    </linearGradient>
+    <filter id="sf"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#ffd600" flood-opacity=".7"/></filter>
+  </defs>
+  <!-- Lightning bolt -->
+  <polygon points="36,2 16,30 28,30 22,62 48,26 34,26" fill="url(#sg)" stroke="#e65100" stroke-width="1.5" stroke-linejoin="round" filter="url(#sf)"/>
+  <!-- Inner highlight -->
+  <polygon points="34,10 22,30 30,30 26,52 42,28 34,28" fill="#ffee58" opacity=".5"/>
+  <!-- Shine -->
+  <ellipse cx="28" cy="18" rx="4" ry="6" fill="white" opacity=".3" transform="rotate(-15 28 18)"/>
+</svg>

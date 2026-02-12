@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <path d="M20 20 L50 80 L80 20 L50 40 Z" fill="#ff8c00" stroke="black" stroke-width="2"/>
+  <path d="M15 15 L25 35 L5 25 Z" fill="#d55600" /> <!-- Ear L -->
+  <path d="M85 15 L75 35 L95 25 Z" fill="#d55600" /> <!-- Ear R -->
+</svg>

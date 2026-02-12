@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Pie dish -->
+  <ellipse cx="32" cy="50" rx="28" ry="8" fill="#D4A055" stroke="#B8863C" stroke-width="1.5"/>
+  <!-- Pie body -->
+  <path d="M4 50 Q4 24 32 24 Q60 24 60 50 Z" fill="#F5C842" stroke="#D4A632" stroke-width="1.5"/>
+  <!-- Lattice top -->
+  <path d="M12 36 Q22 30 32 36 Q42 42 52 36" fill="none" stroke="#D4A632" stroke-width="3" stroke-linecap="round"/>
+  <path d="M10 44 Q20 38 32 44 Q44 50 54 44" fill="none" stroke="#D4A632" stroke-width="3" stroke-linecap="round"/>
+  <path d="M16 30 L16 50" fill="none" stroke="#D4A632" stroke-width="3" stroke-linecap="round"/>
+  <path d="M28 26 L28 50" fill="none" stroke="#D4A632" stroke-width="3" stroke-linecap="round"/>
+  <path d="M40 28 L40 50" fill="none" stroke="#D4A632" stroke-width="3" stroke-linecap="round"/>
+  <path d="M50 34 L50 50" fill="none" stroke="#D4A632" stroke-width="3" stroke-linecap="round"/>
+  <!-- Crust edge -->
+  <path d="M4 50 Q4 46 8 46 Q12 50 16 46 Q20 50 24 46 Q28 50 32 46 Q36 50 40 46 Q44 50 48 46 Q52 50 56 46 Q60 50 60 50" fill="none" stroke="#B8863C" stroke-width="2"/>
+</svg>

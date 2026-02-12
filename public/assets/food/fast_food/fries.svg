@@ -1,0 +1,14 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Container -->
+  <path d="M16 30 L20 58 L44 58 L48 30 Z" fill="#E53935" stroke="#C62828" stroke-width="1.5"/>
+  <path d="M16 30 L48 30 L46 36 L18 36 Z" fill="#C62828"/>
+  <!-- Fries sticking out -->
+  <rect x="20" y="10" width="5" height="24" rx="2" fill="#FFD54F" stroke="#F5C842" stroke-width="0.5"/>
+  <rect x="27" y="6" width="5" height="28" rx="2" fill="#FFCA28" stroke="#F5C842" stroke-width="0.5"/>
+  <rect x="34" y="8" width="5" height="26" rx="2" fill="#FFD54F" stroke="#F5C842" stroke-width="0.5"/>
+  <rect x="41" y="12" width="5" height="22" rx="2" fill="#FFCA28" stroke="#F5C842" stroke-width="0.5"/>
+  <rect x="23" y="14" width="4" height="20" rx="2" fill="#FFEE58" stroke="#F5C842" stroke-width="0.5"/>
+  <rect x="37" y="11" width="4" height="23" rx="2" fill="#FFEE58" stroke="#F5C842" stroke-width="0.5"/>
+  <!-- M logo decoration -->
+  <path d="M26 42 L28 38 L32 44 L36 38 L38 42" fill="none" stroke="#FFD54F" stroke-width="2" stroke-linecap="round"/>
+</svg>

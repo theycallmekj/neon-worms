@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Heart shape -->
+  <path d="M32 56 Q8 40 8 22 Q8 8 20 8 Q32 8 32 20 Q32 8 44 8 Q56 8 56 22 Q56 40 32 56 Z" fill="#F48FB1" stroke="#EC407A" stroke-width="1.5"/>
+  <!-- Inner heart highlight -->
+  <path d="M32 48 Q14 36 14 24 Q14 14 22 14 Q32 14 32 24" fill="#F8BBD0" opacity="0.4"/>
+  <!-- Sparkle -->
+  <circle cx="22" cy="18" r="3" fill="#FFFFFF" opacity="0.4"/>
+  <circle cx="20" cy="22" r="1.5" fill="#FFFFFF" opacity="0.3"/>
+</svg>

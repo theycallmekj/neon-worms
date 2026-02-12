@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stick -->
+  <rect x="30" y="36" width="4" height="24" rx="1" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  <!-- Lollipop swirl -->
+  <circle cx="32" cy="22" r="18" fill="#E53935" stroke="#C62828" stroke-width="1.5"/>
+  <!-- Swirl pattern -->
+  <path d="M32 4 Q38 10 38 22 Q38 34 32 40" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.5"/>
+  <path d="M32 8 Q26 14 26 22 Q26 30 32 36" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.3"/>
+  <!-- Center -->
+  <circle cx="32" cy="22" r="4" fill="#FFFFFF" opacity="0.4"/>
+  <!-- Highlight -->
+  <circle cx="24" cy="14" r="3" fill="#FFFFFF" opacity="0.3"/>
+</svg>

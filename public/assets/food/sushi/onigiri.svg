@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rice triangle -->
+  <path d="M32 8 L8 52 L56 52 Z" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
+  <!-- Nori wrap at bottom -->
+  <path d="M14 44 L50 44 L56 52 L8 52 Z" fill="#2E7D32" stroke="#1B5E20" stroke-width="1"/>
+  <!-- Rice texture dots -->
+  <circle cx="28" cy="26" r="1" fill="#E0E0E0"/>
+  <circle cx="36" cy="28" r="1" fill="#E0E0E0"/>
+  <circle cx="32" cy="34" r="1" fill="#E0E0E0"/>
+  <circle cx="24" cy="36" r="1" fill="#E0E0E0"/>
+  <circle cx="40" cy="36" r="1" fill="#E0E0E0"/>
+  <!-- Filling peek -->
+  <ellipse cx="32" cy="38" rx="6" ry="3" fill="#FF7043" opacity="0.5"/>
+  <!-- Nori texture -->
+  <line x1="16" y1="48" x2="48" y2="48" stroke="#1B5E20" stroke-width="0.5" opacity="0.3"/>
+</svg>

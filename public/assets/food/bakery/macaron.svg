@@ -1,0 +1,14 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bottom macaron half -->
+  <path d="M12 36 Q12 50 32 50 Q52 50 52 36 Z" fill="#CE93D8" stroke="#AB47BC" stroke-width="1"/>
+  <!-- Macaron feet/ruffle -->
+  <path d="M12 36 Q16 34 20 36 Q24 34 28 36 Q32 34 36 36 Q40 34 44 36 Q48 34 52 36" fill="none" stroke="#AB47BC" stroke-width="1.5"/>
+  <!-- Filling -->
+  <rect x="14" y="30" width="36" height="8" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="0.5"/>
+  <!-- Top macaron half -->
+  <path d="M12 32 Q12 14 32 14 Q52 14 52 32 Z" fill="#CE93D8" stroke="#AB47BC" stroke-width="1"/>
+  <!-- Top ruffle -->
+  <path d="M12 32 Q16 30 20 32 Q24 30 28 32 Q32 30 36 32 Q40 30 44 32 Q48 30 52 32" fill="none" stroke="#AB47BC" stroke-width="1.5"/>
+  <!-- Highlight -->
+  <path d="M20 20 Q28 16 36 20" fill="none" stroke="#E1BEE7" stroke-width="2" opacity="0.6" stroke-linecap="round"/>
+</svg>

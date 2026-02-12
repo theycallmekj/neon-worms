@@ -1,0 +1,7 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Candy cane hook -->
+  <path d="M36 60 L36 20 Q36 6 24 6 Q12 6 12 20" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  <path d="M36 60 L36 20 Q36 6 24 6 Q12 6 12 20" fill="none" stroke="#E53935" stroke-width="12" stroke-linecap="round" stroke-dasharray="8 8"/>
+  <!-- Outline -->
+  <path d="M36 60 L36 20 Q36 6 24 6 Q12 6 12 20" fill="none" stroke="#C62828" stroke-width="1" opacity="0.3"/>
+</svg>

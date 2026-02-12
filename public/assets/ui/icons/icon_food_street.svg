@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="fireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF4500;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+    </linearGradient>
+
+    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Aura -->
+  <circle cx="256" cy="256" r="230" fill="#FF4500" opacity="0.1" filter="url(#neonGlow)"/>
+
+  <!-- Stick -->
+  <line x1="80" y1="432" x2="432" y2="80" stroke="#DEB887" stroke-width="25" stroke-linecap="round" filter="url(#neonGlow)"/>
+
+  <!-- Meat/Veggie Stack (Rotated) -->
+  <g transform="rotate(-45 256 256)">
+    <!-- Bottom Meat -->
+    <rect x="216" y="300" width="80" height="80" rx="20" fill="#FF4500" stroke="#fff" stroke-width="6" filter="url(#neonGlow)"/>
+    
+    <!-- Middle Veggie -->
+    <rect x="216" y="210" width="80" height="80" rx="20" fill="#32CD32" stroke="#fff" stroke-width="6" filter="url(#neonGlow)"/>
+    
+    <!-- Top Meat -->
+    <rect x="216" y="120" width="80" height="80" rx="20" fill="#FF4500" stroke="#fff" stroke-width="6" filter="url(#neonGlow)"/>
+  </g>
+
+  <!-- Grill Marks (Black Lines) -->
+  <g opacity="0.5" stroke="#000" stroke-width="5" transform="rotate(-45 256 256)">
+    <line x1="220" y1="320" x2="290" y2="320"/>
+    <line x1="220" y1="340" x2="290" y2="340"/>
+    <line x1="220" y1="360" x2="290" y2="360"/>
+    
+    <line x1="220" y1="140" x2="290" y2="140"/>
+    <line x1="220" y1="160" x2="290" y2="160"/>
+    <line x1="220" y1="180" x2="290" y2="180"/>
+  </g>
+
+  <!-- Smoke/Steam (White Swirls) -->
+  <path d="M300,150 Q350,100 300,50" stroke="#FFF" stroke-width="8" fill="none" opacity="0.6" filter="url(#neonGlow)"/>
+  <path d="M350,150 Q400,100 350,50" stroke="#FFF" stroke-width="8" fill="none" opacity="0.6" filter="url(#neonGlow)"/>
+
+</svg>

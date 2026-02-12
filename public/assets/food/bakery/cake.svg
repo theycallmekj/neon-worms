@@ -1,0 +1,19 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bottom layer -->
+  <rect x="10" y="40" width="44" height="14" rx="3" fill="#FFCC80" stroke="#D4A055" stroke-width="1"/>
+  <!-- Middle layer -->
+  <rect x="10" y="26" width="44" height="14" rx="3" fill="#F48FB1" stroke="#EC407A" stroke-width="1"/>
+  <!-- Top layer -->
+  <rect x="10" y="14" width="44" height="12" rx="3" fill="#FFCC80" stroke="#D4A055" stroke-width="1"/>
+  <!-- Frosting on top -->
+  <path d="M8 14 Q14 8 22 12 Q28 6 34 10 Q40 6 46 12 Q52 8 56 14 Z" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  <!-- Cherry -->
+  <circle cx="32" cy="8" r="4" fill="#E53935"/>
+  <circle cx="30.5" cy="6.5" r="1.2" fill="#FFFFFF" opacity="0.5"/>
+  <!-- Cream layers -->
+  <rect x="10" y="38" width="44" height="4" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  <rect x="10" y="24" width="44" height="3" rx="1" fill="#FFFFFF" opacity="0.6"/>
+  <!-- Candle -->
+  <rect x="30" y="2" width="4" height="8" rx="1" fill="#42A5F5"/>
+  <ellipse cx="32" cy="2" rx="2" ry="3" fill="#FFD54F"/>
+</svg>

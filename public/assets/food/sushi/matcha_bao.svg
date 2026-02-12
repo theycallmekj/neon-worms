@@ -1,0 +1,18 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bao bun -->
+  <path d="M10 34 Q10 14 32 14 Q54 14 54 34 Q54 52 32 52 Q10 52 10 34 Z" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1.5"/>
+  <!-- Top fold -->
+  <path d="M26 16 Q32 10 38 16" fill="none" stroke="#BDBDBD" stroke-width="2" stroke-linecap="round"/>
+  <!-- Green matcha color tint -->
+  <path d="M14 34 Q14 18 32 18 Q50 18 50 34 Z" fill="#C8E6C9" opacity="0.4"/>
+  <!-- Matcha swirl on top -->
+  <path d="M28 22 Q32 18 36 22 Q38 26 34 28 Q30 30 28 26 Q26 24 28 22 Z" fill="#66BB6A" opacity="0.6"/>
+  <!-- Side folds -->
+  <path d="M18 30 Q24 26 30 30" fill="none" stroke="#E0E0E0" stroke-width="1" opacity="0.5"/>
+  <path d="M34 30 Q40 26 46 30" fill="none" stroke="#E0E0E0" stroke-width="1" opacity="0.5"/>
+  <!-- Highlight -->
+  <ellipse cx="24" cy="36" rx="8" ry="4" fill="#FFFFFF" opacity="0.4"/>
+  <!-- Steam -->
+  <path d="M28 8 Q30 4 28 0" fill="none" stroke="#BDBDBD" stroke-width="1" opacity="0.3" stroke-linecap="round"/>
+  <path d="M36 8 Q38 4 36 0" fill="none" stroke="#BDBDBD" stroke-width="1" opacity="0.3" stroke-linecap="round"/>
+</svg>
